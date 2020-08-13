@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="time_unit_day">天</string>
+    <string name="time_unit_hour">小时</string>
+    <string name="time_unit_minute">分钟</string>
+    <string name="time_unit_second">秒</string>
+    <string name="time_unit_millisecond">毫秒</string>
+
+    <string name="time_format_just">刚刚</string>
+    <string name="time_format_seconds_ago">%d秒前</string>
+    <string name="time_format_minute_ago">%d分钟前</string>
+    <string name="time_format_today">今天%tR</string>
+    <string name="time_format_yesterday">昨天%tR</string>
+
+    <string name="zodiac_aquarius">水瓶座</string>
+    <string name="zodiac_pisces">双鱼座</string>
+    <string name="zodiac_aries">白羊座</string>
+    <string name="zodiac_taurus">金牛座</string>
+    <string name="zodiac_gemini">双子座</string>
+    <string name="zodiac_cancer">巨蟹座</string>
+    <string name="zodiac_leo">狮子座</string>
+    <string name="zodiac_virgo">处女座</string>
+    <string name="zodiac_libra">天秤座</string>
+    <string name="zodiac_scorpio">天蝎座</string>
+    <string name="zodiac_sagittarius">射手座</string>
+    <string name="zodiac_capricorn">摩羯座</string>
+</resources>
