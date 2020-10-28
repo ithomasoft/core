@@ -1,7 +1,6 @@
 package com.thomas.core;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -9,6 +8,7 @@ import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public final class CrashUtils {
     private static final String FILE_SEP = System.getProperty("file.separator");
@@ -74,9 +74,9 @@ public final class CrashUtils {
         String dirPath;
         if (UtilsBridge.isSpace(crashDirPath)) {
             if (UtilsBridge.isSDCardEnableByEnvironment()
-                    && Utils.getApp().getExternalFilesDir(null) != null) {
+                    && Utils.getApp().getExternalFilesDir(null) != null)
                 dirPath = Utils.getApp().getExternalFilesDir(null) + FILE_SEP + "crash" + FILE_SEP;
-            } else {
+            else {
                 dirPath = Utils.getApp().getFilesDir() + FILE_SEP + "crash" + FILE_SEP;
             }
         } else {
@@ -91,24 +91,12 @@ public final class CrashUtils {
             @Override
             public void uncaughtException(@NonNull final Thread t, @NonNull final Throwable e) {
                 final String time = new SimpleDateFormat("yyyy_MM_dd-HH_mm_ss").format(new Date());
-                final StringBuilder sb = new StringBuilder();
-                final String head = "************* Log Head ****************" +
-                        "\nTime Of Crash      : " + time +
-                        "\nDevice Manufacturer: " + Build.MANUFACTURER +
-                        "\nDevice Model       : " + Build.MODEL +
-                        "\nAndroid Version    : " + Build.VERSION.RELEASE +
-                        "\nAndroid SDK        : " + Build.VERSION.SDK_INT +
-                        "\nApp VersionName    : " + UtilsBridge.getAppVersionName() +
-                        "\nApp VersionCode    : " + UtilsBridge.getAppVersionCode() +
-                        "\n************* Log Head ****************\n\n";
-                sb.append(head).append(UtilsBridge.getFullStackTrace(e));
-                final String crashInfo = sb.toString();
-                final String crashFile = dirPath + time + ".txt";
-                UtilsBridge.writeFileFromString(crashFile, crashInfo, true);
-
+                CrashInfo info = new CrashInfo(time, e);
                 if (onCrashListener != null) {
-                    onCrashListener.onCrash(crashInfo, e);
+                    onCrashListener.onCrash(info);
                 }
+                final String crashFile = dirPath + time + ".txt";
+                UtilsBridge.writeFileFromString(crashFile, info.toString(), true);
 
                 if (DEFAULT_UNCAUGHT_EXCEPTION_HANDLER != null) {
                     DEFAULT_UNCAUGHT_EXCEPTION_HANDLER.uncaughtException(t, e);
@@ -122,6 +110,35 @@ public final class CrashUtils {
     ///////////////////////////////////////////////////////////////////////////
 
     public interface OnCrashListener {
-        void onCrash(String crashInfo, Throwable e);
+        void onCrash(CrashInfo crashInfo);
+    }
+
+    public static final class CrashInfo {
+        private UtilsBridge.FileHead mFileHeadProvider;
+        private Throwable mThrowable;
+
+        private CrashInfo(String time, Throwable throwable) {
+            mThrowable = throwable;
+            mFileHeadProvider = new UtilsBridge.FileHead("Crash");
+            mFileHeadProvider.addFirst("Time Of Crash", time);
+        }
+
+        public final void addExtraHead(Map<String, String> extraHead) {
+            mFileHeadProvider.append(extraHead);
+        }
+
+        public final void addExtraHead(String key, String value) {
+            mFileHeadProvider.append(key, value);
+        }
+
+        public final Throwable getThrowable() {
+            return mThrowable;
+        }
+
+        @Override
+        public String toString() {
+            return mFileHeadProvider.toString() +
+                    UtilsBridge.getFullStackTrace(mThrowable);
+        }
     }
 }

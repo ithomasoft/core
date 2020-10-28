@@ -35,9 +35,7 @@ public final class FlashlightUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isFlashlightOn() {
-        if (!init()) {
-            return false;
-        }
+        if (!init()) return false;
         Camera.Parameters parameters = mCamera.getParameters();
         return FLASH_MODE_TORCH.equals(parameters.getFlashMode());
     }
@@ -48,9 +46,7 @@ public final class FlashlightUtils {
      * @param isOn True to turn on the flashlight, false otherwise.
      */
     public static void setFlashlightStatus(final boolean isOn) {
-        if (!init()) {
-            return;
-        }
+        if (!init()) return;
         final Camera.Parameters parameters = mCamera.getParameters();
         if (isOn) {
             if (!FLASH_MODE_TORCH.equals(parameters.getFlashMode())) {
@@ -60,7 +56,7 @@ public final class FlashlightUtils {
                     parameters.setFlashMode(FLASH_MODE_TORCH);
                     mCamera.setParameters(parameters);
                 } catch (IOException e) {
-                    Log.e("FlashlightUtils", "setFlashlightStatusOn: ", e);
+                    e.printStackTrace();
                 }
             }
         } else {
@@ -75,9 +71,7 @@ public final class FlashlightUtils {
      * Destroy the flashlight.
      */
     public static void destroy() {
-        if (mCamera == null) {
-            return;
-        }
+        if (mCamera == null) return;
         mCamera.release();
         mSurfaceTexture = null;
         mCamera = null;

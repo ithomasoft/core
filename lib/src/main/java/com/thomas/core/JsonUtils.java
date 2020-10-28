@@ -1,7 +1,5 @@
 package com.thomas.core;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -182,7 +180,7 @@ public final class JsonUtils {
             //noinspection unchecked
             return (T) ret;
         } catch (JSONException e) {
-            Log.e("JsonUtils", "getValueByType: ", e);
+            e.printStackTrace();
             return defaultValue;
         }
     }
@@ -198,7 +196,7 @@ public final class JsonUtils {
         try {
             return getValueByType(new JSONObject(json), key, defaultValue, type);
         } catch (JSONException e) {
-            Log.e("JsonUtils", "getValueByType: ", e);
+            e.printStackTrace();
             return defaultValue;
         }
     }

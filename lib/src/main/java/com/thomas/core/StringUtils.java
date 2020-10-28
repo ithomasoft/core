@@ -5,6 +5,8 @@ import android.content.res.Resources;
 import androidx.annotation.ArrayRes;
 import androidx.annotation.StringRes;
 
+import java.util.IllegalFormatException;
+
 public final class StringUtils {
     private StringUtils() {
         throw new UnsupportedOperationException("u can't instantiate me...");
@@ -37,9 +39,7 @@ public final class StringUtils {
      * @return {@code true}: yes<br> {@code false}: no
      */
     public static boolean isSpace(final String s) {
-        if (s == null) {
-            return true;
-        }
+        if (s == null) return true;
         for (int i = 0, len = s.length(); i < len; ++i) {
             if (!Character.isWhitespace(s.charAt(i))) {
                 return false;
@@ -56,9 +56,7 @@ public final class StringUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean equals(final CharSequence s1, final CharSequence s2) {
-        if (s1 == s2) {
-            return true;
-        }
+        if (s1 == s2) return true;
         int length;
         if (s1 != null && s2 != null && (length = s1.length()) == s2.length()) {
             if (s1 instanceof String && s2 instanceof String) {
@@ -111,12 +109,8 @@ public final class StringUtils {
      * @return the string with first letter upper.
      */
     public static String upperFirstLetter(final String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
-        if (!Character.isLowerCase(s.charAt(0))) {
-            return s;
-        }
+        if (s == null || s.length() == 0) return "";
+        if (!Character.isLowerCase(s.charAt(0))) return s;
         return (char) (s.charAt(0) - 32) + s.substring(1);
     }
 
@@ -127,13 +121,9 @@ public final class StringUtils {
      * @return the string with first letter lower.
      */
     public static String lowerFirstLetter(final String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
-        if (!Character.isUpperCase(s.charAt(0))) {
-            return s;
-        }
-        return (char) (s.charAt(0) + 32) + s.substring(1);
+        if (s == null || s.length() == 0) return "";
+        if (!Character.isUpperCase(s.charAt(0))) return s;
+        return String.valueOf((char) (s.charAt(0) + 32)) + s.substring(1);
     }
 
     /**
@@ -143,13 +133,9 @@ public final class StringUtils {
      * @return the reverse string.
      */
     public static String reverse(final String s) {
-        if (s == null) {
-            return "";
-        }
+        if (s == null) return "";
         int len = s.length();
-        if (len <= 1) {
-            return s;
-        }
+        if (len <= 1) return s;
         int mid = len >> 1;
         char[] chars = s.toCharArray();
         char c;
@@ -168,9 +154,7 @@ public final class StringUtils {
      * @return the DBC string
      */
     public static String toDBC(final String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
+        if (s == null || s.length() == 0) return "";
         char[] chars = s.toCharArray();
         for (int i = 0, len = chars.length; i < len; i++) {
             if (chars[i] == 12288) {
@@ -191,9 +175,7 @@ public final class StringUtils {
      * @return the SBC string
      */
     public static String toSBC(final String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
+        if (s == null || s.length() == 0) return "";
         char[] chars = s.toCharArray();
         for (int i = 0, len = chars.length; i < len; i++) {
             if (chars[i] == ' ') {
@@ -214,11 +196,7 @@ public final class StringUtils {
      * @return the string value associated with a particular resource ID.
      */
     public static String getString(@StringRes int id) {
-        try {
-            return Utils.getApp().getResources().getString(id);
-        } catch (Resources.NotFoundException ignore) {
-            return "";
-        }
+        return getString(id, (Object[]) null);
     }
 
     /**
@@ -230,9 +208,10 @@ public final class StringUtils {
      */
     public static String getString(@StringRes int id, Object... formatArgs) {
         try {
-            return Utils.getApp().getString(id, formatArgs);
-        } catch (Resources.NotFoundException ignore) {
-            return "";
+            return format(Utils.getApp().getString(id), formatArgs);
+        } catch (Resources.NotFoundException e) {
+            e.printStackTrace();
+            return String.valueOf(id);
         }
     }
 
@@ -245,8 +224,30 @@ public final class StringUtils {
     public static String[] getStringArray(@ArrayRes int id) {
         try {
             return Utils.getApp().getResources().getStringArray(id);
-        } catch (Resources.NotFoundException ignore) {
-            return new String[0];
+        } catch (Resources.NotFoundException e) {
+            e.printStackTrace();
+            return new String[]{String.valueOf(id)};
         }
+    }
+
+    /**
+     * Format the string.
+     *
+     * @param str  The string.
+     * @param args The args.
+     * @return a formatted string.
+     */
+    public static String format(String str, Object... args) {
+        String text = str;
+        if (text != null) {
+            if (args != null && args.length > 0) {
+                try {
+                    text = String.format(str, args);
+                } catch (IllegalFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return text;
     }
 }

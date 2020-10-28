@@ -5,6 +5,7 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -26,9 +27,7 @@ public final class ServiceUtils {
         ActivityManager am = (ActivityManager) Utils.getApp().getSystemService(Context.ACTIVITY_SERVICE);
         List<RunningServiceInfo> info = am.getRunningServices(0x7FFFFFFF);
         Set<String> names = new HashSet<>();
-        if (info == null || info.size() == 0) {
-            return null;
-        }
+        if (info == null || info.size() == 0) return null;
         for (RunningServiceInfo aInfo : info) {
             names.add(aInfo.service.getClassName());
         }
@@ -54,8 +53,17 @@ public final class ServiceUtils {
      * @param cls The service class.
      */
     public static void startService(@NonNull final Class<?> cls) {
-        Intent intent = new Intent(Utils.getApp(), cls);
-        Utils.getApp().startService(intent);
+        try {
+            Intent intent = new Intent(Utils.getApp(), cls);
+            intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Utils.getApp().startForegroundService(intent);
+            } else {
+                Utils.getApp().startService(intent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -159,14 +167,16 @@ public final class ServiceUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isServiceRunning(@NonNull final String className) {
-        ActivityManager am = (ActivityManager) Utils.getApp().getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> info = am.getRunningServices(0x7FFFFFFF);
-        if (info == null || info.size() == 0) {
+        try {
+            ActivityManager am = (ActivityManager) Utils.getApp().getSystemService(Context.ACTIVITY_SERVICE);
+            List<RunningServiceInfo> info = am.getRunningServices(0x7FFFFFFF);
+            if (info == null || info.size() == 0) return false;
+            for (RunningServiceInfo aInfo : info) {
+                if (className.equals(aInfo.service.getClassName())) return true;
+            }
+            return false;
+        } catch (Exception ignore) {
             return false;
         }
-        for (RunningServiceInfo aInfo : info) {
-            if (className.equals(aInfo.service.getClassName())) return true;
-        }
-        return false;
     }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="utvLeftIconView" type="id" />
+    <item name="utvTopIconView" type="id" />
+    <item name="utvRightIconView" type="id" />
+    <item name="utvBottomIconView" type="id" />
+</resources>

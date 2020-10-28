@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +24,6 @@ import java.lang.reflect.Field;
 
 public final class KeyboardUtils {
     private static final int TAG_ON_GLOBAL_LAYOUT_LISTENER = -8;
-    private static long millis;
-    private static int sDecorViewDelta = 0;
 
     private KeyboardUtils() {
         throw new UnsupportedOperationException("u can't instantiate me...");
@@ -59,33 +58,7 @@ public final class KeyboardUtils {
         showSoftInput(view, 0);
     }
 
-    /**
-     * Show the soft input.
-     *
-     * @param view  The view.
-     * @param flags Provides additional operating flags.  Currently may be
-     *              0 or have the {@link InputMethodManager#SHOW_IMPLICIT} bit set.
-     */
-    public static void showSoftInput(@NonNull final View view, final int flags) {
-        InputMethodManager imm =
-                (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm == null) {
-            return;
-        }
-        view.setFocusable(true);
-        view.setFocusableInTouchMode(true);
-        view.requestFocus();
-        imm.showSoftInput(view, flags, new ResultReceiver(new Handler()) {
-            @Override
-            protected void onReceiveResult(int resultCode, Bundle resultData) {
-                if (resultCode == InputMethodManager.RESULT_UNCHANGED_HIDDEN
-                        || resultCode == InputMethodManager.RESULT_HIDDEN) {
-                    toggleSoftInput();
-                }
-            }
-        });
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-    }
+    private static long millis;
 
     /**
      * Hide the soft input.
@@ -118,6 +91,34 @@ public final class KeyboardUtils {
         hideSoftInput(view);
     }
 
+    private static int sDecorViewDelta = 0;
+
+    /**
+     * Show the soft input.
+     *
+     * @param view  The view.
+     * @param flags Provides additional operating flags.  Currently may be
+     *              0 or have the {@link InputMethodManager#SHOW_IMPLICIT} bit set.
+     */
+    public static void showSoftInput(@NonNull final View view, final int flags) {
+        InputMethodManager imm =
+                (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm == null) return;
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.requestFocus();
+        imm.showSoftInput(view, flags, new ResultReceiver(new Handler()) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultCode == InputMethodManager.RESULT_UNCHANGED_HIDDEN
+                        || resultCode == InputMethodManager.RESULT_HIDDEN) {
+                    toggleSoftInput();
+                }
+            }
+        });
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
     /**
      * Hide the soft input.
      *
@@ -126,9 +127,7 @@ public final class KeyboardUtils {
     public static void hideSoftInput(@NonNull final View view) {
         InputMethodManager imm =
                 (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm == null) {
-            return;
-        }
+        if (imm == null) return;
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
@@ -138,7 +137,7 @@ public final class KeyboardUtils {
      * @param activity The activity.
      */
     public static void hideSoftInputByToggle(final Activity activity) {
-        long nowMillis = System.currentTimeMillis();
+        long nowMillis = SystemClock.elapsedRealtime();
         long delta = nowMillis - millis;
         if (Math.abs(delta) > 500 && KeyboardUtils.isSoftInputVisible(activity)) {
             KeyboardUtils.toggleSoftInput();
@@ -152,9 +151,7 @@ public final class KeyboardUtils {
     public static void toggleSoftInput() {
         InputMethodManager imm =
                 (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm == null) {
-            return;
-        }
+        if (imm == null) return;
         imm.toggleSoftInput(0, 0);
     }
 
@@ -227,7 +224,8 @@ public final class KeyboardUtils {
      * @param window The window.
      */
     public static void unregisterSoftInputChangedListener(@NonNull final Window window) {
-        final FrameLayout contentView = window.findViewById(android.R.id.content);
+        final View contentView = window.findViewById(android.R.id.content);
+        if (contentView == null) return;
         Object tag = contentView.getTag(TAG_ON_GLOBAL_LAYOUT_LISTENER);
         if (tag instanceof OnGlobalLayoutListener) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -279,9 +277,7 @@ public final class KeyboardUtils {
 
     private static int getContentViewInvisibleHeight(final Window window) {
         final View contentView = window.findViewById(android.R.id.content);
-        if (contentView == null) {
-            return 0;
-        }
+        if (contentView == null) return 0;
         final Rect outRect = new Rect();
         contentView.getWindowVisibleDisplayFrame(outRect);
         Log.d("KeyboardUtils", "getContentViewInvisibleHeight: "
@@ -310,9 +306,7 @@ public final class KeyboardUtils {
     public static void fixSoftInputLeaks(@NonNull final Window window) {
         InputMethodManager imm =
                 (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm == null) {
-            return;
-        }
+        if (imm == null) return;
         String[] leakViews = new String[]{"mLastSrvView", "mCurRootView", "mServedView", "mNextServedView"};
         for (String leakView : leakViews) {
             try {
@@ -321,9 +315,7 @@ public final class KeyboardUtils {
                     leakViewField.setAccessible(true);
                 }
                 Object obj = leakViewField.get(imm);
-                if (!(obj instanceof View)) {
-                    continue;
-                }
+                if (!(obj instanceof View)) continue;
                 View view = (View) obj;
                 if (view.getRootView() == window.getDecorView().getRootView()) {
                     leakViewField.set(imm, null);

@@ -14,6 +14,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -42,7 +43,6 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -78,9 +78,7 @@ public final class ImageUtils {
      * @return bytes
      */
     public static byte[] bitmap2Bytes(final Bitmap bitmap, final CompressFormat format, int quality) {
-        if (bitmap == null) {
-            return null;
-        }
+        if (bitmap == null) return null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(format, quality, baos);
         return baos.toByteArray();
@@ -178,32 +176,29 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap view2Bitmap(final View view) {
-        if (view == null) {
-            return null;
-        }
+        if (view == null) return null;
         boolean drawingCacheEnabled = view.isDrawingCacheEnabled();
         boolean willNotCacheDrawing = view.willNotCacheDrawing();
         view.setDrawingCacheEnabled(true);
         view.setWillNotCacheDrawing(false);
         Bitmap drawingCache = view.getDrawingCache();
         Bitmap bitmap;
-        if (null == drawingCache) {
+        if (null == drawingCache || drawingCache.isRecycled()) {
             view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
             view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
             view.buildDrawingCache();
             drawingCache = view.getDrawingCache();
-            if (drawingCache != null) {
-                bitmap = Bitmap.createBitmap(drawingCache);
-            } else {
-                bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+            if (null == drawingCache || drawingCache.isRecycled()) {
+                bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.RGB_565);
                 Canvas canvas = new Canvas(bitmap);
                 view.draw(canvas);
+            } else {
+                bitmap = Bitmap.createBitmap(drawingCache);
             }
         } else {
             bitmap = Bitmap.createBitmap(drawingCache);
         }
-        view.destroyDrawingCache();
         view.setWillNotCacheDrawing(willNotCacheDrawing);
         view.setDrawingCacheEnabled(drawingCacheEnabled);
         return bitmap;
@@ -216,9 +211,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final File file) {
-        if (file == null) {
-            return null;
-        }
+        if (file == null) return null;
         return BitmapFactory.decodeFile(file.getAbsolutePath());
     }
 
@@ -231,9 +224,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final File file, final int maxWidth, final int maxHeight) {
-        if (file == null) {
-            return null;
-        }
+        if (file == null) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(file.getAbsolutePath(), options);
@@ -249,9 +240,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final String filePath) {
-        if (UtilsBridge.isSpace(filePath)) {
-            return null;
-        }
+        if (UtilsBridge.isSpace(filePath)) return null;
         return BitmapFactory.decodeFile(filePath);
     }
 
@@ -264,9 +253,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final String filePath, final int maxWidth, final int maxHeight) {
-        if (UtilsBridge.isSpace(filePath)) {
-            return null;
-        }
+        if (UtilsBridge.isSpace(filePath)) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, options);
@@ -282,9 +269,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final InputStream is) {
-        if (is == null) {
-            return null;
-        }
+        if (is == null) return null;
         return BitmapFactory.decodeStream(is);
     }
 
@@ -297,9 +282,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final InputStream is, final int maxWidth, final int maxHeight) {
-        if (is == null) {
-            return null;
-        }
+        if (is == null) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(is, null, options);
@@ -316,9 +299,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final byte[] data, final int offset) {
-        if (data.length == 0) {
-            return null;
-        }
+        if (data.length == 0) return null;
         return BitmapFactory.decodeByteArray(data, offset, data.length);
     }
 
@@ -335,9 +316,7 @@ public final class ImageUtils {
                                    final int offset,
                                    final int maxWidth,
                                    final int maxHeight) {
-        if (data.length == 0) {
-            return null;
-        }
+        if (data.length == 0) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(data, offset, data.length, options);
@@ -353,15 +332,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(@DrawableRes final int resId) {
-        Drawable drawable = ContextCompat.getDrawable(Utils.getApp(), resId);
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
-                drawable.getIntrinsicHeight(),
-                Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-        drawable.draw(canvas);
-        return bitmap;
+        return BitmapFactory.decodeResource(Utils.getApp().getResources(), resId);
     }
 
     /**
@@ -391,9 +362,7 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(final FileDescriptor fd) {
-        if (fd == null) {
-            return null;
-        }
+        if (fd == null) return null;
         return BitmapFactory.decodeFileDescriptor(fd);
     }
 
@@ -408,9 +377,7 @@ public final class ImageUtils {
     public static Bitmap getBitmap(final FileDescriptor fd,
                                    final int maxWidth,
                                    final int maxHeight) {
-        if (fd == null) {
-            return null;
-        }
+        if (fd == null) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFileDescriptor(fd, null, options);
@@ -441,9 +408,7 @@ public final class ImageUtils {
     public static Bitmap drawColor(@NonNull final Bitmap src,
                                    @ColorInt final int color,
                                    final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = recycle ? src : src.copy(src.getConfig(), true);
         Canvas canvas = new Canvas(ret);
         canvas.drawColor(color, PorterDuff.Mode.DARKEN);
@@ -475,13 +440,9 @@ public final class ImageUtils {
                                final int newWidth,
                                final int newHeight,
                                final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = Bitmap.createScaledBitmap(src, newWidth, newHeight, true);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -510,15 +471,11 @@ public final class ImageUtils {
                                final float scaleWidth,
                                final float scaleHeight,
                                final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Matrix matrix = new Matrix();
         matrix.setScale(scaleWidth, scaleHeight);
         Bitmap ret = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -557,13 +514,9 @@ public final class ImageUtils {
                               final int width,
                               final int height,
                               final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = Bitmap.createBitmap(src, x, y, width, height);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -630,15 +583,11 @@ public final class ImageUtils {
                               final float px,
                               final float py,
                               final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Matrix matrix = new Matrix();
         matrix.setSkew(kx, ky, px, py);
         Bitmap ret = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -673,18 +622,12 @@ public final class ImageUtils {
                                 final float px,
                                 final float py,
                                 final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
-        if (degrees == 0) {
-            return src;
-        }
+        if (isEmptyBitmap(src)) return null;
+        if (degrees == 0) return src;
         Matrix matrix = new Matrix();
         matrix.setRotate(degrees, px, py);
         Bitmap ret = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -765,9 +708,7 @@ public final class ImageUtils {
                                  @IntRange(from = 0) int borderSize,
                                  @ColorInt int borderColor,
                                  final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         int width = src.getWidth();
         int height = src.getHeight();
         int size = Math.min(width, height);
@@ -794,9 +735,7 @@ public final class ImageUtils {
             float radius = center - borderSize / 2f;
             canvas.drawCircle(width / 2f, height / 2f, radius, paint);
         }
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -836,9 +775,25 @@ public final class ImageUtils {
      */
     public static Bitmap toRoundCorner(final Bitmap src,
                                        final float radius,
-                                       @IntRange(from = 0) int borderSize,
+                                       @FloatRange(from = 0) float borderSize,
                                        @ColorInt int borderColor) {
         return toRoundCorner(src, radius, borderSize, borderColor, false);
+    }
+
+    /**
+     * Return the round corner bitmap.
+     *
+     * @param src         The source of bitmap.
+     * @param radii       Array of 8 values, 4 pairs of [X,Y] radii
+     * @param borderSize  The size of border.
+     * @param borderColor The color of border.
+     * @return the round corner bitmap
+     */
+    public static Bitmap toRoundCorner(final Bitmap src,
+                                       final float[] radii,
+                                       @FloatRange(from = 0) float borderSize,
+                                       @ColorInt int borderColor) {
+        return toRoundCorner(src, radii, borderSize, borderColor, false);
     }
 
     /**
@@ -853,12 +808,29 @@ public final class ImageUtils {
      */
     public static Bitmap toRoundCorner(final Bitmap src,
                                        final float radius,
-                                       @IntRange(from = 0) int borderSize,
+                                       @FloatRange(from = 0) float borderSize,
                                        @ColorInt int borderColor,
                                        final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        float[] radii = {radius, radius, radius, radius, radius, radius, radius, radius};
+        return toRoundCorner(src, radii, borderSize, borderColor, recycle);
+    }
+
+    /**
+     * Return the round corner bitmap.
+     *
+     * @param src         The source of bitmap.
+     * @param radii       Array of 8 values, 4 pairs of [X,Y] radii
+     * @param borderSize  The size of border.
+     * @param borderColor The color of border.
+     * @param recycle     True to recycle the source of bitmap, false otherwise.
+     * @return the round corner bitmap
+     */
+    public static Bitmap toRoundCorner(final Bitmap src,
+                                       final float[] radii,
+                                       @FloatRange(from = 0) float borderSize,
+                                       @ColorInt int borderColor,
+                                       final boolean recycle) {
+        if (isEmptyBitmap(src)) return null;
         int width = src.getWidth();
         int height = src.getHeight();
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -869,18 +841,18 @@ public final class ImageUtils {
         RectF rectF = new RectF(0, 0, width, height);
         float halfBorderSize = borderSize / 2f;
         rectF.inset(halfBorderSize, halfBorderSize);
-        canvas.drawRoundRect(rectF, radius, radius, paint);
+        Path path = new Path();
+        path.addRoundRect(rectF, radii, Path.Direction.CW);
+        canvas.drawPath(path, paint);
         if (borderSize > 0) {
             paint.setShader(null);
             paint.setColor(borderColor);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(borderSize);
             paint.setStrokeCap(Paint.Cap.ROUND);
-            canvas.drawRoundRect(rectF, radius, radius, paint);
+            canvas.drawPath(path, paint);
         }
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -894,10 +866,44 @@ public final class ImageUtils {
      * @return the round corner bitmap with border
      */
     public static Bitmap addCornerBorder(final Bitmap src,
-                                         @IntRange(from = 1) final int borderSize,
+                                         @FloatRange(from = 1) final float borderSize,
                                          @ColorInt final int color,
                                          @FloatRange(from = 0) final float cornerRadius) {
         return addBorder(src, borderSize, color, false, cornerRadius, false);
+    }
+
+    /**
+     * Return the round corner bitmap with border.
+     *
+     * @param src        The source of bitmap.
+     * @param borderSize The size of border.
+     * @param color      The color of border.
+     * @param radii      Array of 8 values, 4 pairs of [X,Y] radii
+     * @return the round corner bitmap with border
+     */
+    public static Bitmap addCornerBorder(final Bitmap src,
+                                         @FloatRange(from = 1) final float borderSize,
+                                         @ColorInt final int color,
+                                         final float[] radii) {
+        return addBorder(src, borderSize, color, false, radii, false);
+    }
+
+    /**
+     * Return the round corner bitmap with border.
+     *
+     * @param src        The source of bitmap.
+     * @param borderSize The size of border.
+     * @param color      The color of border.
+     * @param radii      Array of 8 values, 4 pairs of [X,Y] radii
+     * @param recycle    True to recycle the source of bitmap, false otherwise.
+     * @return the round corner bitmap with border
+     */
+    public static Bitmap addCornerBorder(final Bitmap src,
+                                         @FloatRange(from = 1) final float borderSize,
+                                         @ColorInt final int color,
+                                         final float[] radii,
+                                         final boolean recycle) {
+        return addBorder(src, borderSize, color, false, radii, recycle);
     }
 
     /**
@@ -911,7 +917,7 @@ public final class ImageUtils {
      * @return the round corner bitmap with border
      */
     public static Bitmap addCornerBorder(final Bitmap src,
-                                         @IntRange(from = 1) final int borderSize,
+                                         @FloatRange(from = 1) final float borderSize,
                                          @ColorInt final int color,
                                          @FloatRange(from = 0) final float cornerRadius,
                                          final boolean recycle) {
@@ -927,7 +933,7 @@ public final class ImageUtils {
      * @return the round bitmap with border
      */
     public static Bitmap addCircleBorder(final Bitmap src,
-                                         @IntRange(from = 1) final int borderSize,
+                                         @FloatRange(from = 1) final float borderSize,
                                          @ColorInt final int color) {
         return addBorder(src, borderSize, color, true, 0, false);
     }
@@ -942,7 +948,7 @@ public final class ImageUtils {
      * @return the round bitmap with border
      */
     public static Bitmap addCircleBorder(final Bitmap src,
-                                         @IntRange(from = 1) final int borderSize,
+                                         @FloatRange(from = 1) final float borderSize,
                                          @ColorInt final int color,
                                          final boolean recycle) {
         return addBorder(src, borderSize, color, true, 0, recycle);
@@ -960,14 +966,34 @@ public final class ImageUtils {
      * @return the bitmap with border
      */
     private static Bitmap addBorder(final Bitmap src,
-                                    @IntRange(from = 1) final int borderSize,
+                                    @FloatRange(from = 1) final float borderSize,
                                     @ColorInt final int color,
                                     final boolean isCircle,
                                     final float cornerRadius,
                                     final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        float[] radii = {cornerRadius, cornerRadius, cornerRadius, cornerRadius,
+                cornerRadius, cornerRadius, cornerRadius, cornerRadius};
+        return addBorder(src, borderSize, color, isCircle, radii, recycle);
+    }
+
+    /**
+     * Return the bitmap with border.
+     *
+     * @param src        The source of bitmap.
+     * @param borderSize The size of border.
+     * @param color      The color of border.
+     * @param isCircle   True to draw circle, false to draw corner.
+     * @param radii      Array of 8 values, 4 pairs of [X,Y] radii
+     * @param recycle    True to recycle the source of bitmap, false otherwise.
+     * @return the bitmap with border
+     */
+    private static Bitmap addBorder(final Bitmap src,
+                                    @FloatRange(from = 1) final float borderSize,
+                                    @ColorInt final int color,
+                                    final boolean isCircle,
+                                    final float[] radii,
+                                    final boolean recycle) {
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = recycle ? src : src.copy(src.getConfig(), true);
         int width = ret.getWidth();
         int height = ret.getHeight();
@@ -980,10 +1006,12 @@ public final class ImageUtils {
             float radius = Math.min(width, height) / 2f - borderSize / 2f;
             canvas.drawCircle(width / 2f, height / 2f, radius, paint);
         } else {
-            int halfBorderSize = borderSize >> 1;
-            RectF rectF = new RectF(halfBorderSize, halfBorderSize,
-                    width - halfBorderSize, height - halfBorderSize);
-            canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, paint);
+            RectF rectF = new RectF(0, 0, width, height);
+            float halfBorderSize = borderSize / 2f;
+            rectF.inset(halfBorderSize, halfBorderSize);
+            Path path = new Path();
+            path.addRoundRect(rectF, radii, Path.Direction.CW);
+            canvas.drawPath(path, paint);
         }
         return ret;
     }
@@ -1010,9 +1038,7 @@ public final class ImageUtils {
     public static Bitmap addReflection(final Bitmap src,
                                        final int reflectionHeight,
                                        final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         final int REFLECTION_GAP = 0;
         int srcWidth = src.getWidth();
         int srcHeight = src.getHeight();
@@ -1034,12 +1060,8 @@ public final class ImageUtils {
         paint.setShader(shader);
         paint.setXfermode(new PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_IN));
         canvas.drawRect(0, srcHeight + REFLECTION_GAP, srcWidth, ret.getHeight(), paint);
-        if (!reflectionBitmap.isRecycled()) {
-            reflectionBitmap.recycle();
-        }
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (!reflectionBitmap.isRecycled()) reflectionBitmap.recycle();
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1082,9 +1104,7 @@ public final class ImageUtils {
                                           final float x,
                                           final float y,
                                           final boolean recycle) {
-        if (isEmptyBitmap(src) || content == null) {
-            return null;
-        }
+        if (isEmptyBitmap(src) || content == null) return null;
         Bitmap ret = src.copy(src.getConfig(), true);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         Canvas canvas = new Canvas(ret);
@@ -1093,9 +1113,7 @@ public final class ImageUtils {
         Rect bounds = new Rect();
         paint.getTextBounds(content, 0, content.length(), bounds);
         canvas.drawText(content, x, y + textSize, paint);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1133,9 +1151,7 @@ public final class ImageUtils {
                                            final int y,
                                            final int alpha,
                                            final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = src.copy(src.getConfig(), true);
         if (!isEmptyBitmap(watermark)) {
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -1143,9 +1159,7 @@ public final class ImageUtils {
             paint.setAlpha(alpha);
             canvas.drawBitmap(watermark, x, y, paint);
         }
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1167,13 +1181,9 @@ public final class ImageUtils {
      * @return the alpha bitmap
      */
     public static Bitmap toAlpha(final Bitmap src, final Boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = src.extractAlpha();
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1195,9 +1205,7 @@ public final class ImageUtils {
      * @return the gray bitmap
      */
     public static Bitmap toGray(final Bitmap src, final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         Bitmap ret = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
         Canvas canvas = new Canvas(ret);
         Paint paint = new Paint();
@@ -1206,9 +1214,7 @@ public final class ImageUtils {
         ColorMatrixColorFilter colorMatrixColorFilter = new ColorMatrixColorFilter(colorMatrix);
         paint.setColorFilter(colorMatrixColorFilter);
         canvas.drawBitmap(src, 0, 0, paint);
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1271,9 +1277,7 @@ public final class ImageUtils {
                                   ) final float radius,
                                   final boolean recycle,
                                   final boolean isReturnScale) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         int width = src.getWidth();
         int height = src.getHeight();
         Matrix matrix = new Matrix();
@@ -1293,18 +1297,12 @@ public final class ImageUtils {
             scaleBitmap = stackBlur(scaleBitmap, (int) radius, recycle);
         }
         if (scale == 1 || isReturnScale) {
-            if (recycle && !src.isRecycled() && scaleBitmap != src) {
-                src.recycle();
-            }
+            if (recycle && !src.isRecycled() && scaleBitmap != src) src.recycle();
             return scaleBitmap;
         }
         Bitmap ret = Bitmap.createScaledBitmap(scaleBitmap, width, height, true);
-        if (!scaleBitmap.isRecycled()) {
-            scaleBitmap.recycle();
-        }
-        if (recycle && !src.isRecycled() && ret != src) {
-            src.recycle();
-        }
+        if (!scaleBitmap.isRecycled()) scaleBitmap.recycle();
+        if (recycle && !src.isRecycled() && ret != src) src.recycle();
         return ret;
     }
 
@@ -1395,15 +1393,15 @@ public final class ImageUtils {
         int wh = w * h;
         int div = radius + radius + 1;
 
-        int[] r = new int[wh];
-        int[] g = new int[wh];
-        int[] b = new int[wh];
+        int r[] = new int[wh];
+        int g[] = new int[wh];
+        int b[] = new int[wh];
         int rsum, gsum, bsum, x, y, i, p, yp, yi, yw;
-        int[] vmin = new int[Math.max(w, h)];
+        int vmin[] = new int[Math.max(w, h)];
 
         int divsum = (div + 1) >> 1;
         divsum *= divsum;
-        int[] dv = new int[256 * divsum];
+        int dv[] = new int[256 * divsum];
         for (i = 0; i < 256 * divsum; i++) {
             dv[i] = (i / divsum);
         }
@@ -1739,12 +1737,23 @@ public final class ImageUtils {
         return ret;
     }
 
+    /**
+     * @param src    The source of bitmap.
+     * @param format The format of the image.
+     * @return the file if save success, otherwise return null.
+     */
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format) {
         return save2Album(src, format, 100, false);
     }
 
+    /**
+     * @param src     The source of bitmap.
+     * @param format  The format of the image.
+     * @param recycle True to recycle the source of bitmap, false otherwise.
+     * @return the file if save success, otherwise return null.
+     */
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format,
@@ -1752,6 +1761,15 @@ public final class ImageUtils {
         return save2Album(src, format, 100, recycle);
     }
 
+    /**
+     * @param src     The source of bitmap.
+     * @param format  The format of the image.
+     * @param quality Hint to the compressor, 0-100. 0 meaning compress for
+     *                small size, 100 meaning compress for max quality. Some
+     *                formats, like PNG which is lossless, will ignore the
+     *                quality setting
+     * @return the file if save success, otherwise return null.
+     */
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format,
@@ -1759,6 +1777,16 @@ public final class ImageUtils {
         return save2Album(src, format, quality, false);
     }
 
+    /**
+     * @param src     The source of bitmap.
+     * @param format  The format of the image.
+     * @param quality Hint to the compressor, 0-100. 0 meaning compress for
+     *                small size, 100 meaning compress for max quality. Some
+     *                formats, like PNG which is lossless, will ignore the
+     *                quality setting
+     * @param recycle True to recycle the source of bitmap, false otherwise.
+     * @return the file if save success, otherwise return null.
+     */
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format,
@@ -1789,6 +1817,7 @@ public final class ImageUtils {
                 contentUri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
             }
             contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/" + Utils.getApp().getPackageName());
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri uri = Utils.getApp().getContentResolver().insert(contentUri, contentValues);
             if (uri == null) {
                 return null;
@@ -1797,8 +1826,14 @@ public final class ImageUtils {
             try {
                 os = Utils.getApp().getContentResolver().openOutputStream(uri);
                 src.compress(format, quality, os);
+
+                contentValues.clear();
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                Utils.getApp().getContentResolver().update(uri, contentValues, null, null);
+
                 return UtilsBridge.uri2File(uri);
             } catch (Exception e) {
+                Utils.getApp().getContentResolver().delete(uri, null, null);
                 e.printStackTrace();
                 return null;
             } finally {
@@ -1860,9 +1895,7 @@ public final class ImageUtils {
      * @return the type of image
      */
     public static ImageType getImageType(final File file) {
-        if (file == null) {
-            return null;
-        }
+        if (file == null) return null;
         InputStream is = null;
         try {
             is = new FileInputStream(file);
@@ -1885,9 +1918,7 @@ public final class ImageUtils {
     }
 
     private static ImageType getImageType(final InputStream is) {
-        if (is == null) {
-            return null;
-        }
+        if (is == null) return null;
         try {
             byte[] bytes = new byte[12];
             return is.read(bytes) != -1 ? getImageType(bytes) : null;
@@ -2034,15 +2065,11 @@ public final class ImageUtils {
     public static byte[] compressByQuality(final Bitmap src,
                                            @IntRange(from = 0, to = 100) final int quality,
                                            final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         src.compress(Bitmap.CompressFormat.JPEG, quality, baos);
         byte[] bytes = baos.toByteArray();
-        if (recycle && !src.isRecycled()) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled()) src.recycle();
         return bytes;
     }
 
@@ -2068,9 +2095,7 @@ public final class ImageUtils {
     public static byte[] compressByQuality(final Bitmap src,
                                            final long maxByteSize,
                                            final boolean recycle) {
-        if (isEmptyBitmap(src) || maxByteSize <= 0) {
-            return new byte[0];
-        }
+        if (isEmptyBitmap(src) || maxByteSize <= 0) return new byte[0];
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         src.compress(CompressFormat.JPEG, 100, baos);
         byte[] bytes;
@@ -2106,9 +2131,7 @@ public final class ImageUtils {
                 bytes = baos.toByteArray();
             }
         }
-        if (recycle && !src.isRecycled()) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled()) src.recycle();
         return bytes;
     }
 
@@ -2135,17 +2158,13 @@ public final class ImageUtils {
     public static Bitmap compressBySampleSize(final Bitmap src,
                                               final int sampleSize,
                                               final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = sampleSize;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         src.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] bytes = baos.toByteArray();
-        if (recycle && !src.isRecycled()) {
-            src.recycle();
-        }
+        if (recycle && !src.isRecycled()) src.recycle();
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
     }
 
@@ -2176,9 +2195,7 @@ public final class ImageUtils {
                                               final int maxWidth,
                                               final int maxHeight,
                                               final boolean recycle) {
-        if (isEmptyBitmap(src)) {
-            return null;
-        }
+        if (isEmptyBitmap(src)) return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -2208,9 +2225,7 @@ public final class ImageUtils {
      * @return the size of bitmap
      */
     public static int[] getSize(File file) {
-        if (file == null) {
-            return new int[]{0, 0};
-        }
+        if (file == null) return new int[]{0, 0};
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(file.getAbsolutePath(), opts);

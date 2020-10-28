@@ -29,9 +29,6 @@ import static android.Manifest.permission.INTERNET;
 import static android.content.Context.WIFI_SERVICE;
 
 public final class DeviceUtils {
-    private static final String KEY_UDID = "KEY_UDID";
-    private volatile static String udid;
-
     private DeviceUtils() {
         throw new UnsupportedOperationException("u can't instantiate me...");
     }
@@ -85,6 +82,9 @@ public final class DeviceUtils {
         return android.os.Build.VERSION.SDK_INT;
     }
 
+    private static final String KEY_UDID = "KEY_UDID";
+    private volatile static String udid;
+
     /**
      * Return the android id of device.
      *
@@ -96,9 +96,7 @@ public final class DeviceUtils {
                 Utils.getApp().getContentResolver(),
                 Settings.Secure.ANDROID_ID
         );
-        if ("9774d56d682e549c".equals(id)) {
-            return "";
-        }
+        if ("9774d56d682e549c".equals(id)) return "";
         return id == null ? "" : id;
     }
 
@@ -113,40 +111,10 @@ public final class DeviceUtils {
     @RequiresPermission(allOf = {ACCESS_WIFI_STATE, INTERNET, CHANGE_WIFI_STATE})
     public static String getMacAddress() {
         String macAddress = getMacAddress((String[]) null);
-        if (!macAddress.equals("") || getWifiEnabled()) {
-            return macAddress;
-        }
+        if (!TextUtils.isEmpty(macAddress) || getWifiEnabled()) return macAddress;
         setWifiEnabled(true);
         setWifiEnabled(false);
         return getMacAddress((String[]) null);
-    }
-
-    private static boolean getWifiEnabled() {
-        @SuppressLint("WifiManagerLeak")
-        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
-        if (manager == null) {
-            return false;
-        }
-        return manager.isWifiEnabled();
-    }
-
-    /**
-     * Enable or disable wifi.
-     * <p>Must hold {@code <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />}</p>
-     *
-     * @param enabled True to enabled, false otherwise.
-     */
-    @RequiresPermission(CHANGE_WIFI_STATE)
-    private static void setWifiEnabled(final boolean enabled) {
-        @SuppressLint("WifiManagerLeak")
-        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
-        if (manager == null) {
-            return;
-        }
-        if (enabled == manager.isWifiEnabled()) {
-            return;
-        }
-        manager.setWifiEnabled(enabled);
     }
 
     /**
@@ -177,56 +145,44 @@ public final class DeviceUtils {
         return "";
     }
 
+    private static boolean getWifiEnabled() {
+        @SuppressLint("WifiManagerLeak")
+        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
+        if (manager == null) return false;
+        return manager.isWifiEnabled();
+    }
+
+    /**
+     * Enable or disable wifi.
+     * <p>Must hold {@code <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />}</p>
+     *
+     * @param enabled True to enabled, false otherwise.
+     */
+    @RequiresPermission(CHANGE_WIFI_STATE)
+    private static void setWifiEnabled(final boolean enabled) {
+        @SuppressLint("WifiManagerLeak")
+        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
+        if (manager == null) return;
+        if (enabled == manager.isWifiEnabled()) return;
+        manager.setWifiEnabled(enabled);
+    }
+
     private static boolean isAddressNotInExcepts(final String address, final String... excepts) {
+        if (TextUtils.isEmpty(address)) {
+            return false;
+        }
+        if ("02:00:00:00:00:00".equals(address)) {
+            return false;
+        }
         if (excepts == null || excepts.length == 0) {
-            return !"02:00:00:00:00:00".equals(address);
+            return true;
         }
         for (String filter : excepts) {
-            if (address.equals(filter)) {
+            if (filter != null && filter.equals(address)) {
                 return false;
             }
         }
         return true;
-    }
-
-    @SuppressLint({"MissingPermission", "HardwareIds"})
-    private static String getMacAddressByWifiInfo() {
-        try {
-            final WifiManager wifi = (WifiManager) Utils.getApp()
-                    .getApplicationContext().getSystemService(WIFI_SERVICE);
-            if (wifi != null) {
-                final WifiInfo info = wifi.getConnectionInfo();
-                if (info != null) {
-                    return info.getMacAddress();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "02:00:00:00:00:00";
-    }
-
-    private static String getMacAddressByNetworkInterface() {
-        try {
-            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni = nis.nextElement();
-                if (ni == null || !ni.getName().equalsIgnoreCase("wlan0")) {
-                    continue;
-                }
-                byte[] macBytes = ni.getHardwareAddress();
-                if (macBytes != null && macBytes.length > 0) {
-                    StringBuilder sb = new StringBuilder();
-                    for (byte b : macBytes) {
-                        sb.append(String.format("%02x:", b));
-                    }
-                    return sb.substring(0, sb.length() - 1);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "02:00:00:00:00:00";
     }
 
     private static String getMacAddressByInetAddress() {
@@ -251,28 +207,24 @@ public final class DeviceUtils {
         return "02:00:00:00:00:00";
     }
 
-    private static InetAddress getInetAddress() {
+    @SuppressLint({"MissingPermission", "HardwareIds"})
+    private static String getMacAddressByWifiInfo() {
         try {
-            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni = nis.nextElement();
-                // To prevent phone of xiaomi return "10.0.2.15"
-                if (!ni.isUp()) {
-                    continue;
-                }
-                Enumeration<InetAddress> addresses = ni.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress inetAddress = addresses.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        String hostAddress = inetAddress.getHostAddress();
-                        if (hostAddress.indexOf(':') < 0) {return inetAddress;}
+            final WifiManager wifi = (WifiManager) Utils.getApp()
+                    .getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wifi != null) {
+                final WifiInfo info = wifi.getConnectionInfo();
+                if (info != null) {
+                    String macAddress = info.getMacAddress();
+                    if (!TextUtils.isEmpty(macAddress)) {
+                        return macAddress;
                     }
                 }
             }
-        } catch (SocketException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return "02:00:00:00:00:00";
     }
 
     private static String getMacAddressByFile() {
@@ -346,6 +298,49 @@ public final class DeviceUtils {
                 >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
+    private static String getMacAddressByNetworkInterface() {
+        try {
+            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+            while (nis.hasMoreElements()) {
+                NetworkInterface ni = nis.nextElement();
+                if (ni == null || !ni.getName().equalsIgnoreCase("wlan0")) continue;
+                byte[] macBytes = ni.getHardwareAddress();
+                if (macBytes != null && macBytes.length > 0) {
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : macBytes) {
+                        sb.append(String.format("%02x:", b));
+                    }
+                    return sb.substring(0, sb.length() - 1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "02:00:00:00:00:00";
+    }
+
+    private static InetAddress getInetAddress() {
+        try {
+            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+            while (nis.hasMoreElements()) {
+                NetworkInterface ni = nis.nextElement();
+                // To prevent phone of xiaomi return "10.0.2.15"
+                if (!ni.isUp()) continue;
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress inetAddress = addresses.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        String hostAddress = inetAddress.getHostAddress();
+                        if (hostAddress.indexOf(':') < 0) return inetAddress;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * Return whether device is emulator.
      *
@@ -361,7 +356,7 @@ public final class DeviceUtils {
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
-        if (checkProperty) {return true;}
+        if (checkProperty) return true;
 
         String operatorName = "";
         TelephonyManager tm = (TelephonyManager) Utils.getApp().getSystemService(Context.TELEPHONY_SERVICE);
@@ -372,19 +367,32 @@ public final class DeviceUtils {
             }
         }
         boolean checkOperatorName = operatorName.toLowerCase().equals("android");
-        if (checkOperatorName) {
-            return true;
-        }
+        if (checkOperatorName) return true;
 
         String url = "tel:" + "123456";
         Intent intent = new Intent();
         intent.setData(Uri.parse(url));
         intent.setAction(Intent.ACTION_DIAL);
         boolean checkDial = intent.resolveActivity(Utils.getApp().getPackageManager()) == null;
-        return checkDial;
+        if (checkDial) return true;
 
 //        boolean checkDebuggerConnected = Debug.isDebuggerConnected();
 //        if (checkDebuggerConnected) return true;
+
+        return false;
+    }
+
+    /**
+     * Whether user has enabled development settings.
+     *
+     * @return whether user has enabled development settings.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    public static boolean isDevelopmentSettingsEnabled() {
+        return Settings.Global.getInt(
+                Utils.getApp().getContentResolver(),
+                Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0
+        ) > 0;
     }
 
     /**
@@ -472,16 +480,10 @@ public final class DeviceUtils {
     @SuppressLint({"MissingPermission", "HardwareIds"})
     public static boolean isSameDevice(final String uniqueDeviceId) {
         // {prefix}{type}{32id}
-        if (TextUtils.isEmpty(uniqueDeviceId) && uniqueDeviceId.length() < 33) {
-            return false;
-        }
-        if (uniqueDeviceId.equals(udid)) {
-            return true;
-        }
+        if (TextUtils.isEmpty(uniqueDeviceId) && uniqueDeviceId.length() < 33) return false;
+        if (uniqueDeviceId.equals(udid)) return true;
         final String cachedId = UtilsBridge.getSpUtils4Utils().getString(KEY_UDID, null);
-        if (uniqueDeviceId.equals(cachedId)) {
-            return true;
-        }
+        if (uniqueDeviceId.equals(cachedId)) return true;
         int st = uniqueDeviceId.length() - 33;
         String type = uniqueDeviceId.substring(st, st + 1);
         if (type.startsWith("1")) {

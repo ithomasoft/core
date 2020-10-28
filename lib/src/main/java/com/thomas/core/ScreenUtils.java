@@ -34,9 +34,7 @@ public final class ScreenUtils {
      */
     public static int getScreenWidth() {
         WindowManager wm = (WindowManager) Utils.getApp().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            return -1;
-        }
+        if (wm == null) return -1;
         Point point = new Point();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             wm.getDefaultDisplay().getRealSize(point);
@@ -53,9 +51,7 @@ public final class ScreenUtils {
      */
     public static int getScreenHeight() {
         WindowManager wm = (WindowManager) Utils.getApp().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            return -1;
-        }
+        if (wm == null) return -1;
         Point point = new Point();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             wm.getDefaultDisplay().getRealSize(point);
@@ -72,9 +68,7 @@ public final class ScreenUtils {
      */
     public static int getAppScreenWidth() {
         WindowManager wm = (WindowManager) Utils.getApp().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            return -1;
-        }
+        if (wm == null) return -1;
         Point point = new Point();
         wm.getDefaultDisplay().getSize(point);
         return point.x;
@@ -87,9 +81,7 @@ public final class ScreenUtils {
      */
     public static int getAppScreenHeight() {
         WindowManager wm = (WindowManager) Utils.getApp().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            return -1;
-        }
+        if (wm == null) return -1;
         Point point = new Point();
         wm.getDefaultDisplay().getSize(point);
         return point.y;
@@ -158,16 +150,6 @@ public final class ScreenUtils {
     }
 
     /**
-     * Return whether screen is landscape.
-     *
-     * @return {@code true}: yes<br>{@code false}: no
-     */
-    public static boolean isLandscape() {
-        return Utils.getApp().getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_LANDSCAPE;
-    }
-
-    /**
      * Set the screen to landscape.
      *
      * @param activity The activity.
@@ -178,16 +160,6 @@ public final class ScreenUtils {
     }
 
     /**
-     * Return whether screen is portrait.
-     *
-     * @return {@code true}: yes<br>{@code false}: no
-     */
-    public static boolean isPortrait() {
-        return Utils.getApp().getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_PORTRAIT;
-    }
-
-    /**
      * Set the screen to portrait.
      *
      * @param activity The activity.
@@ -195,6 +167,26 @@ public final class ScreenUtils {
     @SuppressLint("SourceLockedOrientationActivity")
     public static void setPortrait(@NonNull final Activity activity) {
         activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * Return whether screen is landscape.
+     *
+     * @return {@code true}: yes<br>{@code false}: no
+     */
+    public static boolean isLandscape() {
+        return Utils.getApp().getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    /**
+     * Return whether screen is portrait.
+     *
+     * @return {@code true}: yes<br>{@code false}: no
+     */
+    public static boolean isPortrait() {
+        return Utils.getApp().getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_PORTRAIT;
     }
 
     /**
@@ -237,29 +229,12 @@ public final class ScreenUtils {
      */
     public static Bitmap screenShot(@NonNull final Activity activity, boolean isDeleteStatusBar) {
         View decorView = activity.getWindow().getDecorView();
-        boolean drawingCacheEnabled = decorView.isDrawingCacheEnabled();
-        boolean willNotCacheDrawing = decorView.willNotCacheDrawing();
-        decorView.setDrawingCacheEnabled(true);
-        decorView.setWillNotCacheDrawing(false);
-        Bitmap bmp = decorView.getDrawingCache();
-        if (bmp == null) {
-            decorView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            decorView.layout(0, 0, decorView.getMeasuredWidth(), decorView.getMeasuredHeight());
-            decorView.buildDrawingCache();
-            bmp = Bitmap.createBitmap(decorView.getDrawingCache());
-        }
-        if (bmp == null) {
-            return null;
-        }
+        Bitmap bmp = UtilsBridge.view2Bitmap(decorView);
         DisplayMetrics dm = new DisplayMetrics();
         activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        Bitmap ret;
         if (isDeleteStatusBar) {
-            Resources resources = activity.getResources();
-            int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
-            int statusBarHeight = resources.getDimensionPixelSize(resourceId);
-            ret = Bitmap.createBitmap(
+            int statusBarHeight = UtilsBridge.getStatusBarHeight();
+            return Bitmap.createBitmap(
                     bmp,
                     0,
                     statusBarHeight,
@@ -267,12 +242,8 @@ public final class ScreenUtils {
                     dm.heightPixels - statusBarHeight
             );
         } else {
-            ret = Bitmap.createBitmap(bmp, 0, 0, dm.widthPixels, dm.heightPixels);
+            return Bitmap.createBitmap(bmp, 0, 0, dm.widthPixels, dm.heightPixels);
         }
-        decorView.destroyDrawingCache();
-        decorView.setWillNotCacheDrawing(willNotCacheDrawing);
-        decorView.setDrawingCacheEnabled(drawingCacheEnabled);
-        return ret;
     }
 
     /**
@@ -283,10 +254,23 @@ public final class ScreenUtils {
     public static boolean isScreenLock() {
         KeyguardManager km =
                 (KeyguardManager) Utils.getApp().getSystemService(Context.KEYGUARD_SERVICE);
-        if (km == null) {
-            return false;
-        }
+        if (km == null) return false;
         return km.inKeyguardRestrictedInputMode();
+    }
+
+    /**
+     * Set the duration of sleep.
+     * <p>Must hold {@code <uses-permission android:name="android.permission.WRITE_SETTINGS" />}</p>
+     *
+     * @param duration The duration.
+     */
+    @RequiresPermission(WRITE_SETTINGS)
+    public static void setSleepDuration(final int duration) {
+        Settings.System.putInt(
+                Utils.getApp().getContentResolver(),
+                Settings.System.SCREEN_OFF_TIMEOUT,
+                duration
+        );
     }
 
     /**
@@ -304,20 +288,5 @@ public final class ScreenUtils {
             e.printStackTrace();
             return -123;
         }
-    }
-
-    /**
-     * Set the duration of sleep.
-     * <p>Must hold {@code <uses-permission android:name="android.permission.WRITE_SETTINGS" />}</p>
-     *
-     * @param duration The duration.
-     */
-    @RequiresPermission(WRITE_SETTINGS)
-    public static void setSleepDuration(final int duration) {
-        Settings.System.putInt(
-                Utils.getApp().getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT,
-                duration
-        );
     }
 }

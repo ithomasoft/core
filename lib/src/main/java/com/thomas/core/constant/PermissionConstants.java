@@ -21,6 +21,7 @@ public final class PermissionConstants {
     public static final String SENSORS = "SENSORS";
     public static final String SMS = "SMS";
     public static final String STORAGE = "STORAGE";
+    public static final String ACTIVITY_RECOGNITION = "ACTIVITY_RECOGNITION";
 
     private static final String[] GROUP_CALENDAR = {
             permission.READ_CALENDAR, permission.WRITE_CALENDAR
@@ -32,7 +33,7 @@ public final class PermissionConstants {
             permission.READ_CONTACTS, permission.WRITE_CONTACTS, permission.GET_ACCOUNTS
     };
     private static final String[] GROUP_LOCATION = {
-            permission.ACCESS_FINE_LOCATION, permission.ACCESS_COARSE_LOCATION
+            permission.ACCESS_FINE_LOCATION, permission.ACCESS_COARSE_LOCATION, permission.ACCESS_BACKGROUND_LOCATION
     };
     private static final String[] GROUP_MICROPHONE = {
             permission.RECORD_AUDIO
@@ -57,8 +58,11 @@ public final class PermissionConstants {
     private static final String[] GROUP_STORAGE = {
             permission.READ_EXTERNAL_STORAGE, permission.WRITE_EXTERNAL_STORAGE,
     };
+    private static final String[] GROUP_ACTIVITY_RECOGNITION = {
+            permission.ACTIVITY_RECOGNITION,
+    };
 
-    public static String[] getPermissions(@Permission final String permission) {
+    public static String[] getPermissions(@PermissionGroup final String permission) {
         if (permission == null) return new String[0];
         switch (permission) {
             case CALENDAR:
@@ -83,12 +87,14 @@ public final class PermissionConstants {
                 return GROUP_SMS;
             case STORAGE:
                 return GROUP_STORAGE;
+            case ACTIVITY_RECOGNITION:
+                return GROUP_ACTIVITY_RECOGNITION;
         }
         return new String[]{permission};
     }
 
     @StringDef({CALENDAR, CAMERA, CONTACTS, LOCATION, MICROPHONE, PHONE, SENSORS, SMS, STORAGE,})
     @Retention(RetentionPolicy.SOURCE)
-    public @interface Permission {
+    public @interface PermissionGroup {
     }
 }

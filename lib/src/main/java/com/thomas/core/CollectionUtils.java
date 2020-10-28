@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public final class CollectionUtils {
-
     private CollectionUtils() {
         throw new UnsupportedOperationException("u can't instantiate me...");
     }
@@ -52,9 +51,7 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> ArrayList<E> newArrayList(E... array) {
         ArrayList<E> list = new ArrayList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         for (E e : array) {
             list.add(e);
         }
@@ -64,24 +61,18 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> ArrayList<E> newArrayListNotNull(E... array) {
         ArrayList<E> list = new ArrayList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         for (E e : array) {
-            if (e == null) {
-                continue;
-            }
+            if (e == null) continue;
             list.add(e);
         }
         return list;
     }
 
     @SafeVarargs
-    public static <E> List<E> newLinkedList(E... array) {
+    public static <E> LinkedList<E> newLinkedList(E... array) {
         LinkedList<E> list = new LinkedList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         for (E e : array) {
             list.add(e);
         }
@@ -89,15 +80,11 @@ public final class CollectionUtils {
     }
 
     @SafeVarargs
-    public static <E> List<E> newLinkedListNotNull(E... array) {
+    public static <E> LinkedList<E> newLinkedListNotNull(E... array) {
         LinkedList<E> list = new LinkedList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         for (E e : array) {
-            if (e == null) {
-                continue;
-            }
+            if (e == null) continue;
             list.add(e);
         }
         return list;
@@ -106,9 +93,7 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> HashSet<E> newHashSet(E... array) {
         HashSet<E> set = new HashSet<>();
-        if (array == null || array.length == 0) {
-            return set;
-        }
+        if (array == null || array.length == 0) return set;
         for (E e : array) {
             set.add(e);
         }
@@ -118,13 +103,9 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> HashSet<E> newHashSetNotNull(E... array) {
         HashSet<E> set = new HashSet<>();
-        if (array == null || array.length == 0) {
-            return set;
-        }
+        if (array == null || array.length == 0) return set;
         for (E e : array) {
-            if (e == null) {
-                continue;
-            }
+            if (e == null) continue;
             set.add(e);
         }
         return set;
@@ -133,9 +114,7 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> TreeSet<E> newTreeSet(Comparator<E> comparator, E... array) {
         TreeSet<E> set = new TreeSet<>(comparator);
-        if (array == null || array.length == 0) {
-            return set;
-        }
+        if (array == null || array.length == 0) return set;
         for (E e : array) {
             set.add(e);
         }
@@ -145,13 +124,9 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <E> TreeSet<E> newTreeSetNotNull(Comparator<E> comparator, E... array) {
         TreeSet<E> set = new TreeSet<>(comparator);
-        if (array == null || array.length == 0) {
-            return set;
-        }
+        if (array == null || array.length == 0) return set;
         for (E e : array) {
-            if (e == null) {
-                continue;
-            }
+            if (e == null) continue;
             set.add(e);
         }
         return set;
@@ -179,15 +154,9 @@ public final class CollectionUtils {
      * @see Collection#addAll
      */
     public static Collection union(final Collection a, final Collection b) {
-        if (a == null && b == null) {
-            return new ArrayList();
-        }
-        if (a == null) {
-            return new ArrayList<Object>(b);
-        }
-        if (b == null) {
-            return new ArrayList<Object>(a);
-        }
+        if (a == null && b == null) return new ArrayList();
+        if (a == null) return new ArrayList<Object>(b);
+        if (b == null) return new ArrayList<Object>(a);
         ArrayList<Object> list = new ArrayList<>();
         Map<Object, Integer> mapA = getCardinalityMap(a);
         Map<Object, Integer> mapB = getCardinalityMap(b);
@@ -215,9 +184,7 @@ public final class CollectionUtils {
      * @see Collection#retainAll
      */
     public static Collection intersection(final Collection a, final Collection b) {
-        if (a == null || b == null) {
-            return new ArrayList();
-        }
+        if (a == null || b == null) return new ArrayList();
         ArrayList<Object> list = new ArrayList<>();
         Map mapA = getCardinalityMap(a);
         Map mapB = getCardinalityMap(b);
@@ -257,15 +224,9 @@ public final class CollectionUtils {
      * @return the symmetric difference of the two collections
      */
     public static Collection disjunction(final Collection a, final Collection b) {
-        if (a == null && b == null) {
-            return new ArrayList();
-        }
-        if (a == null) {
-            return new ArrayList<Object>(b);
-        }
-        if (b == null) {
-            return new ArrayList<Object>(a);
-        }
+        if (a == null && b == null) return new ArrayList();
+        if (a == null) return new ArrayList<Object>(b);
+        if (b == null) return new ArrayList<Object>(a);
         ArrayList<Object> list = new ArrayList<>();
         Map mapA = getCardinalityMap(a);
         Map mapB = getCardinalityMap(b);
@@ -292,12 +253,8 @@ public final class CollectionUtils {
      * @see Collection#removeAll
      */
     public static Collection subtract(final Collection a, final Collection b) {
-        if (a == null) {
-            return new ArrayList();
-        }
-        if (b == null) {
-            return new ArrayList<Object>(a);
-        }
+        if (a == null) return new ArrayList();
+        if (b == null) return new ArrayList<Object>(a);
         ArrayList<Object> list = new ArrayList<Object>(a);
         for (Object o : b) {
             list.remove(o);
@@ -317,9 +274,7 @@ public final class CollectionUtils {
      * @see #intersection
      */
     public static boolean containsAny(final Collection coll1, final Collection coll2) {
-        if (coll1 == null || coll2 == null) {
-            return false;
-        }
+        if (coll1 == null || coll2 == null) return false;
         if (coll1.size() < coll2.size()) {
             for (Object o : coll1) {
                 if (coll2.contains(o)) {
@@ -350,9 +305,7 @@ public final class CollectionUtils {
      */
     public static Map<Object, Integer> getCardinalityMap(final Collection coll) {
         Map<Object, Integer> count = new HashMap<>();
-        if (coll == null) {
-            return count;
-        }
+        if (coll == null) return count;
         for (Object obj : coll) {
             Integer c = count.get(obj);
             if (c == null) {
@@ -410,9 +363,7 @@ public final class CollectionUtils {
      * @see Collection#containsAll
      */
     public static boolean isProperSubCollection(final Collection a, final Collection b) {
-        if (a == null || b == null) {
-            return false;
-        }
+        if (a == null || b == null) return false;
         return a.size() < b.size() && isSubCollection(a, b);
     }
 
@@ -429,9 +380,7 @@ public final class CollectionUtils {
      * @return <code>true</code> iff the collections contain the same elements with the same cardinalities.
      */
     public static boolean isEqualCollection(final Collection a, final Collection b) {
-        if (a == null || b == null) {
-            return false;
-        }
+        if (a == null || b == null) return false;
         if (a.size() != b.size()) {
             return false;
         } else {
@@ -458,9 +407,7 @@ public final class CollectionUtils {
      * @return the the number of occurrences of obj in coll
      */
     public static <E> int cardinality(E obj, final Collection<E> coll) {
-        if (coll == null) {
-            return 0;
-        }
+        if (coll == null) return 0;
         if (coll instanceof Set) {
             return (coll.contains(obj) ? 1 : 0);
         }
@@ -492,9 +439,7 @@ public final class CollectionUtils {
      * @return the first element of the collection which matches the predicate or null if none could be found
      */
     public static <E> E find(Collection<E> collection, Predicate<E> predicate) {
-        if (collection == null || predicate == null) {
-            return null;
-        }
+        if (collection == null || predicate == null) return null;
         for (E item : collection) {
             if (predicate.evaluate(item)) {
                 return item;
@@ -512,9 +457,7 @@ public final class CollectionUtils {
      * @param closure    the closure to perform, may be null
      */
     public static <E> void forAllDo(Collection<E> collection, Closure<E> closure) {
-        if (collection == null || closure == null) {
-            return;
-        }
+        if (collection == null || closure == null) return;
         int index = 0;
         for (E e : collection) {
             closure.execute(index++, e);
@@ -531,9 +474,7 @@ public final class CollectionUtils {
      * @param predicate  the predicate to use as a filter, may be null
      */
     public static <E> void filter(Collection<E> collection, Predicate<E> predicate) {
-        if (collection == null || predicate == null) {
-            return;
-        }
+        if (collection == null || predicate == null) return;
         for (Iterator it = collection.iterator(); it.hasNext(); ) {
             if (!predicate.evaluate((E) it.next())) {
                 it.remove();
@@ -553,9 +494,7 @@ public final class CollectionUtils {
      * @throws NullPointerException if the input collection is null
      */
     public static <E> Collection<E> select(Collection<E> inputCollection, Predicate<E> predicate) {
-        if (inputCollection == null || predicate == null) {
-            return new ArrayList<>();
-        }
+        if (inputCollection == null || predicate == null) return new ArrayList<>();
         ArrayList<E> answer = new ArrayList<>(inputCollection.size());
         for (E o : inputCollection) {
             if (predicate.evaluate(o)) {
@@ -577,9 +516,7 @@ public final class CollectionUtils {
      * @throws NullPointerException if the input collection is null
      */
     public static <E> Collection<E> selectRejected(Collection<E> inputCollection, Predicate<E> predicate) {
-        if (inputCollection == null || predicate == null) {
-            return new ArrayList<>();
-        }
+        if (inputCollection == null || predicate == null) return new ArrayList<>();
         ArrayList<E> answer = new ArrayList<>(inputCollection.size());
         for (E o : inputCollection) {
             if (!predicate.evaluate(o)) {
@@ -606,9 +543,7 @@ public final class CollectionUtils {
      * @param transformer the transformer to perform, may be null
      */
     public static <E1, E2> void transform(Collection<E1> collection, Transformer<E1, E2> transformer) {
-        if (collection == null || transformer == null) {
-            return;
-        }
+        if (collection == null || transformer == null) return;
         if (collection instanceof List) {
             List list = (List) collection;
             for (ListIterator it = list.listIterator(); it.hasNext(); ) {
@@ -635,9 +570,7 @@ public final class CollectionUtils {
     public static <E1, E2> Collection<E2> collect(final Collection<E1> inputCollection,
                                                   final Transformer<E1, E2> transformer) {
         List<E2> answer = new ArrayList<>();
-        if (inputCollection == null || transformer == null) {
-            return answer;
-        }
+        if (inputCollection == null || transformer == null) return answer;
         for (E1 e1 : inputCollection) {
             answer.add(transformer.transform(e1));
         }
@@ -654,9 +587,7 @@ public final class CollectionUtils {
      * @return the number of matches for the predicate in the collection
      */
     public static <E> int countMatches(Collection<E> collection, Predicate<E> predicate) {
-        if (collection == null || predicate == null) {
-            return 0;
-        }
+        if (collection == null || predicate == null) return 0;
         int count = 0;
         for (E o : collection) {
             if (predicate.evaluate(o)) {
@@ -676,9 +607,7 @@ public final class CollectionUtils {
      * @return true if at least one element of the collection matches the predicate
      */
     public static <E> boolean exists(Collection<E> collection, Predicate<E> predicate) {
-        if (collection == null || predicate == null) {
-            return false;
-        }
+        if (collection == null || predicate == null) return false;
         for (E o : collection) {
             if (predicate.evaluate(o)) {
                 return true;
@@ -695,9 +624,7 @@ public final class CollectionUtils {
      * @return true if the collection changed
      */
     public static <E> boolean addIgnoreNull(Collection<E> collection, E object) {
-        if (collection == null) {
-            return false;
-        }
+        if (collection == null) return false;
         return (object != null && collection.add(object));
     }
 
@@ -708,9 +635,7 @@ public final class CollectionUtils {
      * @param iterator   the iterator of elements to add, may be null
      */
     public static <E> void addAll(Collection<E> collection, Iterator<E> iterator) {
-        if (collection == null || iterator == null) {
-            return;
-        }
+        if (collection == null || iterator == null) return;
         while (iterator.hasNext()) {
             collection.add(iterator.next());
         }
@@ -723,9 +648,7 @@ public final class CollectionUtils {
      * @param enumeration the enumeration of elements to add, may be null
      */
     public static <E> void addAll(Collection<E> collection, Enumeration<E> enumeration) {
-        if (collection == null || enumeration == null) {
-            return;
-        }
+        if (collection == null || enumeration == null) return;
         while (enumeration.hasMoreElements()) {
             collection.add(enumeration.nextElement());
         }
@@ -738,9 +661,7 @@ public final class CollectionUtils {
      * @param elements   the array of elements to add, may be null
      */
     public static <E> void addAll(Collection<E> collection, E[] elements) {
-        if (collection == null || elements == null || elements.length == 0) {
-            return;
-        }
+        if (collection == null || elements == null || elements.length == 0) return;
         collection.addAll(Arrays.asList(elements));
     }
 
@@ -775,9 +696,7 @@ public final class CollectionUtils {
      * @throws IllegalArgumentException  if the object type is invalid
      */
     public static Object get(Object object, int index) {
-        if (object == null) {
-            return null;
-        }
+        if (object == null) return null;
         if (index < 0) {
             throw new IndexOutOfBoundsException("Index cannot be negative: " + index);
         }
@@ -840,9 +759,7 @@ public final class CollectionUtils {
      * @throws IllegalArgumentException thrown if object is not recognised or null
      */
     public static int size(Object object) {
-        if (object == null) {
-            return 0;
-        }
+        if (object == null) return 0;
         int total = 0;
         if (object instanceof Map) {
             total = ((Map) object).size();
@@ -892,9 +809,7 @@ public final class CollectionUtils {
      * @throws IllegalArgumentException thrown if object is not recognised or null
      */
     public static boolean sizeIsEmpty(Object object) {
-        if (object == null) {
-            return true;
-        }
+        if (object == null) return true;
         if (object instanceof Collection) {
             return ((Collection) object).isEmpty();
         } else if (object instanceof Map) {
@@ -953,9 +868,7 @@ public final class CollectionUtils {
      * that occur at least once in <code>retain</code>.
      */
     public static <E> Collection<E> retainAll(Collection<E> collection, Collection<E> retain) {
-        if (collection == null || retain == null) {
-            return new ArrayList<>();
-        }
+        if (collection == null || retain == null) return new ArrayList<>();
         List<E> list = new ArrayList<>();
         for (E item : collection) {
             if (retain.contains(item)) {
@@ -980,12 +893,8 @@ public final class CollectionUtils {
      * any elements that also occur in <code>remove</code>.
      */
     public static <E> Collection<E> removeAll(Collection<E> collection, Collection<E> remove) {
-        if (collection == null) {
-            return new ArrayList<>();
-        }
-        if (remove == null) {
-            return new ArrayList<>(collection);
-        }
+        if (collection == null) return new ArrayList<>();
+        if (remove == null) return new ArrayList<>(collection);
         List<E> list = new ArrayList<>();
         for (E obj : collection) {
             if (!remove.contains(obj)) {
@@ -1013,9 +922,7 @@ public final class CollectionUtils {
      * @return the string of collection
      */
     public static String toString(Collection collection) {
-        if (collection == null) {
-            return "null";
-        }
+        if (collection == null) return "null";
         return collection.toString();
     }
 

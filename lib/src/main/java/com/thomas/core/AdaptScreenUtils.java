@@ -2,7 +2,6 @@ package com.thomas.core;
 
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -134,11 +133,9 @@ public final class AdaptScreenUtils {
         for (Field metricsField : sMetricsFields) {
             try {
                 DisplayMetrics dm = (DisplayMetrics) metricsField.get(resources);
-                if (dm != null) {
-                    dm.xdpi = newXdpi;
-                }
+                if (dm != null) dm.xdpi = newXdpi;
             } catch (Exception e) {
-                Log.e("AdaptScreenUtils", "applyMetricsFields: " + e);
+                e.printStackTrace();
             }
         }
     }

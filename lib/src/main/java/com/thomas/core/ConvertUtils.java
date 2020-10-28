@@ -66,9 +66,7 @@ public final class ConvertUtils {
      * @return bits
      */
     public static String bytes2Bits(final byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return "";
-        }
+        if (bytes == null || bytes.length == 0) return "";
         StringBuilder sb = new StringBuilder();
         for (byte aByte : bytes) {
             for (int j = 7; j >= 0; --j) {
@@ -111,13 +109,9 @@ public final class ConvertUtils {
      * @return chars
      */
     public static char[] bytes2Chars(final byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         int len = bytes.length;
-        if (len <= 0) {
-            return null;
-        }
+        if (len <= 0) return null;
         char[] chars = new char[len];
         for (int i = 0; i < len; i++) {
             chars[i] = (char) (bytes[i] & 0xff);
@@ -132,9 +126,7 @@ public final class ConvertUtils {
      * @return bytes
      */
     public static byte[] chars2Bytes(final char[] chars) {
-        if (chars == null || chars.length <= 0) {
-            return null;
-        }
+        if (chars == null || chars.length <= 0) return null;
         int len = chars.length;
         byte[] bytes = new byte[len];
         for (int i = 0; i < len; i++) {
@@ -163,14 +155,10 @@ public final class ConvertUtils {
      * @return hex string
      */
     public static String bytes2HexString(final byte[] bytes, boolean isUpperCase) {
-        if (bytes == null) {
-            return "";
-        }
+        if (bytes == null) return "";
         char[] hexDigits = isUpperCase ? HEX_DIGITS_UPPER : HEX_DIGITS_LOWER;
         int len = bytes.length;
-        if (len <= 0) {
-            return "";
-        }
+        if (len <= 0) return "";
         char[] ret = new char[len << 1];
         for (int i = 0, j = 0; i < len; i++) {
             ret[j++] = hexDigits[bytes[i] >> 4 & 0x0f];
@@ -187,9 +175,7 @@ public final class ConvertUtils {
      * @return the bytes
      */
     public static byte[] hexString2Bytes(String hexString) {
-        if (UtilsBridge.isSpace(hexString)) {
-            return new byte[0];
-        }
+        if (UtilsBridge.isSpace(hexString)) return new byte[0];
         int len = hexString.length();
         if (len % 2 != 0) {
             hexString = "0" + hexString;
@@ -224,9 +210,7 @@ public final class ConvertUtils {
      * Bytes to string.
      */
     public static String bytes2String(final byte[] bytes, final String charsetName) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         try {
             return new String(bytes, getSafeCharset(charsetName));
         } catch (UnsupportedEncodingException e) {
@@ -246,9 +230,7 @@ public final class ConvertUtils {
      * String to bytes.
      */
     public static byte[] string2Bytes(final String string, final String charsetName) {
-        if (string == null) {
-            return null;
-        }
+        if (string == null) return null;
         try {
             return string.getBytes(getSafeCharset(charsetName));
         } catch (UnsupportedEncodingException e) {
@@ -261,9 +243,7 @@ public final class ConvertUtils {
      * Bytes to JSONObject.
      */
     public static JSONObject bytes2JSONObject(final byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         try {
             return new JSONObject(new String(bytes));
         } catch (Exception e) {
@@ -276,9 +256,7 @@ public final class ConvertUtils {
      * JSONObject to bytes.
      */
     public static byte[] jsonObject2Bytes(final JSONObject jsonObject) {
-        if (jsonObject == null) {
-            return null;
-        }
+        if (jsonObject == null) return null;
         return jsonObject.toString().getBytes();
     }
 
@@ -286,9 +264,7 @@ public final class ConvertUtils {
      * Bytes to JSONArray.
      */
     public static JSONArray bytes2JSONArray(final byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         try {
             return new JSONArray(new String(bytes));
         } catch (Exception e) {
@@ -301,9 +277,7 @@ public final class ConvertUtils {
      * JSONArray to bytes.
      */
     public static byte[] jsonArray2Bytes(final JSONArray jsonArray) {
-        if (jsonArray == null) {
-            return null;
-        }
+        if (jsonArray == null) return null;
         return jsonArray.toString().getBytes();
     }
 
@@ -312,9 +286,7 @@ public final class ConvertUtils {
      */
     public static <T> T bytes2Parcelable(final byte[] bytes,
                                          final Parcelable.Creator<T> creator) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         Parcel parcel = Parcel.obtain();
         parcel.unmarshall(bytes, 0, bytes.length);
         parcel.setDataPosition(0);
@@ -327,9 +299,7 @@ public final class ConvertUtils {
      * Parcelable to bytes.
      */
     public static byte[] parcelable2Bytes(final Parcelable parcelable) {
-        if (parcelable == null) {
-            return null;
-        }
+        if (parcelable == null) return null;
         Parcel parcel = Parcel.obtain();
         parcelable.writeToParcel(parcel, 0);
         byte[] bytes = parcel.marshall();
@@ -341,9 +311,7 @@ public final class ConvertUtils {
      * Bytes to Serializable.
      */
     public static Object bytes2Object(final byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
+        if (bytes == null) return null;
         ObjectInputStream ois = null;
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
@@ -366,9 +334,7 @@ public final class ConvertUtils {
      * Serializable to bytes.
      */
     public static byte[] serializable2Bytes(final Serializable serializable) {
-        if (serializable == null) {
-            return null;
-        }
+        if (serializable == null) return null;
         ByteArrayOutputStream baos;
         ObjectOutputStream oos = null;
         try {
@@ -446,9 +412,7 @@ public final class ConvertUtils {
      */
     public static long memorySize2Byte(final long memorySize,
                                        @MemoryConstants.Unit final int unit) {
-        if (memorySize < 0) {
-            return -1;
-        }
+        if (memorySize < 0) return -1;
         return memorySize * unit;
     }
 
@@ -467,9 +431,7 @@ public final class ConvertUtils {
      */
     public static double byte2MemorySize(final long byteSize,
                                          @MemoryConstants.Unit final int unit) {
-        if (byteSize < 0) {
-            return -1;
-        }
+        if (byteSize < 0) return -1;
         return (double) byteSize / unit;
     }
 
@@ -571,9 +533,7 @@ public final class ConvertUtils {
      * Input stream to output stream.
      */
     public static ByteArrayOutputStream input2OutputStream(final InputStream is) {
-        if (is == null) {
-            return null;
-        }
+        if (is == null) return null;
         try {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             byte[] b = new byte[BUFFER_SIZE];
@@ -595,12 +555,18 @@ public final class ConvertUtils {
     }
 
     /**
+     * Output stream to input stream.
+     */
+    public static ByteArrayInputStream output2InputStream(final OutputStream out) {
+        if (out == null) return null;
+        return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
+    }
+
+    /**
      * Input stream to bytes.
      */
     public static byte[] inputStream2Bytes(final InputStream is) {
-        if (is == null) {
-            return null;
-        }
+        if (is == null) return null;
         return input2OutputStream(is).toByteArray();
     }
 
@@ -608,9 +574,7 @@ public final class ConvertUtils {
      * Bytes to input stream.
      */
     public static InputStream bytes2InputStream(final byte[] bytes) {
-        if (bytes == null || bytes.length <= 0) {
-            return null;
-        }
+        if (bytes == null || bytes.length <= 0) return null;
         return new ByteArrayInputStream(bytes);
     }
 
@@ -618,9 +582,7 @@ public final class ConvertUtils {
      * Output stream to bytes.
      */
     public static byte[] outputStream2Bytes(final OutputStream out) {
-        if (out == null) {
-            return null;
-        }
+        if (out == null) return null;
         return ((ByteArrayOutputStream) out).toByteArray();
     }
 
@@ -628,9 +590,7 @@ public final class ConvertUtils {
      * Bytes to output stream.
      */
     public static OutputStream bytes2OutputStream(final byte[] bytes) {
-        if (bytes == null || bytes.length <= 0) {
-            return null;
-        }
+        if (bytes == null || bytes.length <= 0) return null;
         ByteArrayOutputStream os = null;
         try {
             os = new ByteArrayOutputStream();
@@ -654,14 +614,10 @@ public final class ConvertUtils {
      * Input stream to string.
      */
     public static String inputStream2String(final InputStream is, final String charsetName) {
-        if (is == null) {
-            return "";
-        }
+        if (is == null) return "";
         try {
             ByteArrayOutputStream baos = input2OutputStream(is);
-            if (baos == null) {
-                return "";
-            }
+            if (baos == null) return "";
             return baos.toString(getSafeCharset(charsetName));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -673,9 +629,7 @@ public final class ConvertUtils {
      * String to input stream.
      */
     public static InputStream string2InputStream(final String string, final String charsetName) {
-        if (string == null) {
-            return null;
-        }
+        if (string == null) return null;
         try {
             return new ByteArrayInputStream(string.getBytes(getSafeCharset(charsetName)));
         } catch (UnsupportedEncodingException e) {
@@ -688,9 +642,7 @@ public final class ConvertUtils {
      * Output stream to string.
      */
     public static String outputStream2String(final OutputStream out, final String charsetName) {
-        if (out == null) {
-            return "";
-        }
+        if (out == null) return "";
         try {
             return new String(outputStream2Bytes(out), getSafeCharset(charsetName));
         } catch (UnsupportedEncodingException e) {
@@ -703,9 +655,7 @@ public final class ConvertUtils {
      * String to output stream.
      */
     public static OutputStream string2OutputStream(final String string, final String charsetName) {
-        if (string == null) {
-            return null;
-        }
+        if (string == null) return null;
         try {
             return bytes2OutputStream(string.getBytes(getSafeCharset(charsetName)));
         } catch (UnsupportedEncodingException e) {
@@ -798,15 +748,5 @@ public final class ConvertUtils {
             cn = "UTF-8";
         }
         return cn;
-    }
-
-    /**
-     * Output stream to input stream.
-     */
-    public ByteArrayInputStream output2InputStream(final OutputStream out) {
-        if (out == null) {
-            return null;
-        }
-        return new ByteArrayInputStream(((ByteArrayOutputStream) out).toByteArray());
     }
 }

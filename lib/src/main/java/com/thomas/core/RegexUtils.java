@@ -50,15 +50,9 @@ public final class RegexUtils {
      */
     public static boolean isMobileExact(final CharSequence input, List<String> newSegments) {
         boolean match = isMatch(RegexConstants.REGEX_MOBILE_EXACT, input);
-        if (match) {
-            return true;
-        }
-        if (newSegments == null) {
-            return false;
-        }
-        if (input == null || input.length() != 11) {
-            return false;
-        }
+        if (match) return true;
+        if (newSegments == null) return false;
+        if (input == null || input.length() != 11) return false;
         String content = input.toString();
         for (char c : content.toCharArray()) {
             if (!Character.isDigit(c)) {
@@ -151,9 +145,10 @@ public final class RegexUtils {
                 CITY_MAP.put("64", "宁夏");
                 CITY_MAP.put("65", "新疆");
 
-                CITY_MAP.put("71", "台湾");
+                CITY_MAP.put("71", "台湾老");
                 CITY_MAP.put("81", "香港");
                 CITY_MAP.put("82", "澳门");
+                CITY_MAP.put("83", "台湾新");
                 CITY_MAP.put("91", "国外");
             }
             if (CITY_MAP.get(input.subSequence(0, 2).toString()) != null) {
@@ -251,9 +246,7 @@ public final class RegexUtils {
      * @return the list of input matches the regex
      */
     public static List<String> getMatches(final String regex, final CharSequence input) {
-        if (input == null) {
-            return Collections.emptyList();
-        }
+        if (input == null) return Collections.emptyList();
         List<String> matches = new ArrayList<>();
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
@@ -271,9 +264,7 @@ public final class RegexUtils {
      * @return the array of strings computed by splitting input around matches of regex
      */
     public static String[] getSplits(final String input, final String regex) {
-        if (input == null) {
-            return new String[0];
-        }
+        if (input == null) return new String[0];
         return input.split(regex);
     }
 
@@ -291,9 +282,7 @@ public final class RegexUtils {
     public static String getReplaceFirst(final String input,
                                          final String regex,
                                          final String replacement) {
-        if (input == null) {
-            return "";
-        }
+        if (input == null) return "";
         return Pattern.compile(regex).matcher(input).replaceFirst(replacement);
     }
 
@@ -311,9 +300,7 @@ public final class RegexUtils {
     public static String getReplaceAll(final String input,
                                        final String regex,
                                        final String replacement) {
-        if (input == null) {
-            return "";
-        }
+        if (input == null) return "";
         return Pattern.compile(regex).matcher(input).replaceAll(replacement);
     }
 }

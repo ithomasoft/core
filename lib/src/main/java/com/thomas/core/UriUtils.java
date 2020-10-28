@@ -13,10 +13,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
-
-import com.thomas.core.constant.ThomasConstants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,9 +45,10 @@ public final class UriUtils {
      * @param file The file.
      * @return uri
      */
-    public static Uri file2Uri(@NonNull final File file) {
+    public static Uri file2Uri(final File file) {
+        if (!UtilsBridge.isFileExists(file)) return null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            String authority = Utils.getApp().getPackageName() + "." + ThomasConstants.DEFAULT_PROVIDER_NAME + ".provider";
+            String authority = Utils.getApp().getPackageName() + ".utilcode.provider";
             return FileProvider.getUriForFile(Utils.getApp(), authority, file);
         } else {
             return Uri.fromFile(file);
@@ -63,11 +61,10 @@ public final class UriUtils {
      * @param uri The uri.
      * @return file
      */
-    public static File uri2File(@NonNull final Uri uri) {
+    public static File uri2File(final Uri uri) {
+        if (uri == null) return null;
         File file = uri2FileReal(uri);
-        if (file != null) {
-            return file;
-        }
+        if (file != null) return file;
         return copyUri2Cache(uri);
     }
 
@@ -77,7 +74,7 @@ public final class UriUtils {
      * @param uri The uri.
      * @return file
      */
-    private static File uri2FileReal(@NonNull final Uri uri) {
+    private static File uri2FileReal(final Uri uri) {
         Log.d("UriUtils", uri.toString());
         String authority = uri.getAuthority();
         String scheme = uri.getScheme();
@@ -115,9 +112,7 @@ public final class UriUtils {
             }
         }
         if (ContentResolver.SCHEME_FILE.equals(scheme)) {
-            if (path != null) {
-                return new File(path);
-            }
+            if (path != null) return new File(path);
             Log.d("UriUtils", uri.toString() + " parse failed. -> 0");
             return null;
         }// end 0
@@ -153,9 +148,7 @@ public final class UriUtils {
                                     || Environment.MEDIA_MOUNTED_READ_ONLY.equals(getState.invoke(storageVolumeElement));
 
                             //if the media is not mounted, we need not get the volume details
-                            if (!mounted) {
-                                continue;
-                            }
+                            if (!mounted) continue;
 
                             //Primary storage is already handled.
                             if ((Boolean) isPrimary.invoke(storageVolumeElement)
@@ -177,13 +170,22 @@ public final class UriUtils {
                 return null;
             }// end 1_0
             else if ("com.android.providers.downloads.documents".equals(authority)) {
-                final String id = DocumentsContract.getDocumentId(uri);
+                String id = DocumentsContract.getDocumentId(uri);
                 if (TextUtils.isEmpty(id)) {
                     Log.d("UriUtils", uri.toString() + " parse failed(id is null). -> 1_1");
                     return null;
                 }
                 if (id.startsWith("raw:")) {
                     return new File(id.substring(4));
+                } else if (id.startsWith("msf:")) {
+                    id = id.split(":")[1];
+                }
+
+                long availableId = 0;
+                try {
+                    availableId = Long.parseLong(id);
+                } catch (Exception e) {
+                    return null;
                 }
 
                 String[] contentUriPrefixesToTry = new String[]{
@@ -193,7 +195,7 @@ public final class UriUtils {
                 };
 
                 for (String contentUriPrefix : contentUriPrefixesToTry) {
-                    Uri contentUri = ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
+                    Uri contentUri = ContentUris.withAppendedId(Uri.parse(contentUriPrefix), availableId);
                     try {
                         File file = getFileFromUri(contentUri, "1_1");
                         if (file != null) {
@@ -258,7 +260,7 @@ public final class UriUtils {
             String path = uri.getPath();
             if (!TextUtils.isEmpty(path)) {
                 File fileDir = Environment.getExternalStorageDirectory();
-                return new File(fileDir, path.substring("/QQBrowser".length()));
+                return new File(fileDir, path.substring("/QQBrowser".length(), path.length()));
             }
         } else if ("com.huawei.hidisk.fileprovider".equals(uri.getAuthority())) {
             String path = uri.getPath();
@@ -323,6 +325,7 @@ public final class UriUtils {
      * @return the input stream
      */
     public static byte[] uri2Bytes(Uri uri) {
+        if (uri == null) return null;
         InputStream is = null;
         try {
             is = Utils.getApp().getContentResolver().openInputStream(uri);

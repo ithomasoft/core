@@ -1,5 +1,7 @@
 package com.thomas.core;
 
+import android.os.Build;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,15 +12,11 @@ import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.Mac;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
@@ -41,9 +39,7 @@ public final class EncryptUtils {
      * @return the hex string of MD2 encryption
      */
     public static String encryptMD2ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptMD2ToString(data.getBytes());
     }
 
@@ -74,9 +70,7 @@ public final class EncryptUtils {
      * @return the hex string of MD5 encryption
      */
     public static String encryptMD5ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptMD5ToString(data.getBytes());
     }
 
@@ -88,15 +82,9 @@ public final class EncryptUtils {
      * @return the hex string of MD5 encryption
      */
     public static String encryptMD5ToString(final String data, final String salt) {
-        if (data == null && salt == null) {
-            return "";
-        }
-        if (salt == null) {
-            return UtilsBridge.bytes2HexString(encryptMD5(data.getBytes()));
-        }
-        if (data == null) {
-            return UtilsBridge.bytes2HexString(encryptMD5(salt.getBytes()));
-        }
+        if (data == null && salt == null) return "";
+        if (salt == null) return UtilsBridge.bytes2HexString(encryptMD5(data.getBytes()));
+        if (data == null) return UtilsBridge.bytes2HexString(encryptMD5(salt.getBytes()));
         return UtilsBridge.bytes2HexString(encryptMD5((data + salt).getBytes()));
     }
 
@@ -118,15 +106,9 @@ public final class EncryptUtils {
      * @return the hex string of MD5 encryption
      */
     public static String encryptMD5ToString(final byte[] data, final byte[] salt) {
-        if (data == null && salt == null) {
-            return "";
-        }
-        if (salt == null) {
-            return UtilsBridge.bytes2HexString(encryptMD5(data));
-        }
-        if (data == null) {
-            return UtilsBridge.bytes2HexString(encryptMD5(salt));
-        }
+        if (data == null && salt == null) return "";
+        if (salt == null) return UtilsBridge.bytes2HexString(encryptMD5(data));
+        if (data == null) return UtilsBridge.bytes2HexString(encryptMD5(salt));
         byte[] dataSalt = new byte[data.length + salt.length];
         System.arraycopy(data, 0, dataSalt, 0, data.length);
         System.arraycopy(salt, 0, dataSalt, data.length, salt.length);
@@ -182,9 +164,7 @@ public final class EncryptUtils {
      * @return the bytes of file's MD5 encryption
      */
     public static byte[] encryptMD5File(final File file) {
-        if (file == null) {
-            return null;
-        }
+        if (file == null) return null;
         FileInputStream fis = null;
         DigestInputStream digestInputStream;
         try {
@@ -218,9 +198,7 @@ public final class EncryptUtils {
      * @return the hex string of SHA1 encryption
      */
     public static String encryptSHA1ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptSHA1ToString(data.getBytes());
     }
 
@@ -251,9 +229,7 @@ public final class EncryptUtils {
      * @return the hex string of SHA224 encryption
      */
     public static String encryptSHA224ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptSHA224ToString(data.getBytes());
     }
 
@@ -284,9 +260,7 @@ public final class EncryptUtils {
      * @return the hex string of SHA256 encryption
      */
     public static String encryptSHA256ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptSHA256ToString(data.getBytes());
     }
 
@@ -317,9 +291,7 @@ public final class EncryptUtils {
      * @return the hex string of SHA384 encryption
      */
     public static String encryptSHA384ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptSHA384ToString(data.getBytes());
     }
 
@@ -350,9 +322,7 @@ public final class EncryptUtils {
      * @return the hex string of SHA512 encryption
      */
     public static String encryptSHA512ToString(final String data) {
-        if (data == null || data.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0) return "";
         return encryptSHA512ToString(data.getBytes());
     }
 
@@ -384,9 +354,7 @@ public final class EncryptUtils {
      * @return the bytes of hash encryption
      */
     static byte[] hashTemplate(final byte[] data, final String algorithm) {
-        if (data == null || data.length <= 0) {
-            return null;
-        }
+        if (data == null || data.length <= 0) return null;
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);
             md.update(data);
@@ -409,9 +377,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacMD5 encryption
      */
     public static String encryptHmacMD5ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacMD5ToString(data.getBytes(), key.getBytes());
     }
 
@@ -445,9 +411,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacSHA1 encryption
      */
     public static String encryptHmacSHA1ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacSHA1ToString(data.getBytes(), key.getBytes());
     }
 
@@ -481,9 +445,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacSHA224 encryption
      */
     public static String encryptHmacSHA224ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacSHA224ToString(data.getBytes(), key.getBytes());
     }
 
@@ -517,9 +479,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacSHA256 encryption
      */
     public static String encryptHmacSHA256ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacSHA256ToString(data.getBytes(), key.getBytes());
     }
 
@@ -553,9 +513,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacSHA384 encryption
      */
     public static String encryptHmacSHA384ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacSHA384ToString(data.getBytes(), key.getBytes());
     }
 
@@ -589,9 +547,7 @@ public final class EncryptUtils {
      * @return the hex string of HmacSHA512 encryption
      */
     public static String encryptHmacSHA512ToString(final String data, final String key) {
-        if (data == null || data.length() == 0 || key == null || key.length() == 0) {
-            return "";
-        }
+        if (data == null || data.length() == 0 || key == null || key.length() == 0) return "";
         return encryptHmacSHA512ToString(data.getBytes(), key.getBytes());
     }
 
@@ -628,9 +584,7 @@ public final class EncryptUtils {
     private static byte[] hmacTemplate(final byte[] data,
                                        final byte[] key,
                                        final String algorithm) {
-        if (data == null || data.length == 0 || key == null || key.length == 0) {
-            return null;
-        }
+        if (data == null || data.length == 0 || key == null || key.length == 0) return null;
         try {
             SecretKeySpec secretKey = new SecretKeySpec(key, algorithm);
             Mac mac = Mac.getInstance(algorithm);
@@ -976,9 +930,7 @@ public final class EncryptUtils {
                                             final String transformation,
                                             final byte[] iv,
                                             final boolean isEncrypt) {
-        if (data == null || data.length == 0 || key == null || key.length == 0) {
-            return null;
-        }
+        if (data == null || data.length == 0 || key == null || key.length == 0) return null;
         try {
             SecretKey secretKey;
             if ("DES".equals(algorithm)) {
@@ -1122,12 +1074,18 @@ public final class EncryptUtils {
         }
         try {
             Key rsaKey;
+            KeyFactory keyFactory;
+            if (Build.VERSION.SDK_INT < 28) {
+                keyFactory = KeyFactory.getInstance("RSA", "BC");
+            } else {
+                keyFactory = KeyFactory.getInstance("RSA");
+            }
             if (isEncrypt) {
                 X509EncodedKeySpec keySpec = new X509EncodedKeySpec(key);
-                rsaKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+                rsaKey = keyFactory.generatePublic(keySpec);
             } else {
                 PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(key);
-                rsaKey = KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+                rsaKey = keyFactory.generatePrivate(keySpec);
             }
             if (rsaKey == null) return null;
             Cipher cipher = Cipher.getInstance(transformation);
@@ -1160,17 +1118,7 @@ public final class EncryptUtils {
             } else {
                 return cipher.doFinal(data);
             }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -1183,9 +1131,7 @@ public final class EncryptUtils {
      * @param key  The key.
      */
     public static byte[] rc4(byte[] data, byte[] key) {
-        if (data == null || data.length == 0 || key == null) {
-            return null;
-        }
+        if (data == null || data.length == 0 || key == null) return null;
         if (key.length < 1 || key.length > 256) {
             throw new IllegalArgumentException("key must be between 1 and 256 bytes");
         }

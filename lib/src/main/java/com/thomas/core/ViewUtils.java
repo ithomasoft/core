@@ -1,9 +1,13 @@
 package com.thomas.core;
 
+import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.LayoutRes;
 
 import java.util.Locale;
 
@@ -26,14 +30,10 @@ public class ViewUtils {
      * @param excludes The excludes.
      */
     public static void setViewEnabled(View view, boolean enabled, View... excludes) {
-        if (view == null) {
-            return;
-        }
+        if (view == null) return;
         if (excludes != null) {
             for (View exclude : excludes) {
-                if (view == exclude) {
-                    return;
-                }
+                if (view == exclude) return;
             }
         }
         if (view instanceof ViewGroup) {
@@ -100,5 +100,11 @@ public class ViewUtils {
                 fixScrollViewTopping(childAt);
             }
         }
+    }
+
+    public static View layoutId2View(@LayoutRes final int layoutId) {
+        LayoutInflater inflate =
+                (LayoutInflater) Utils.getApp().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        return inflate.inflate(layoutId, null);
     }
 }

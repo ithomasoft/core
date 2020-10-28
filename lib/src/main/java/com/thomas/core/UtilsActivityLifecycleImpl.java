@@ -14,11 +14,11 @@ import androidx.lifecycle.Lifecycle;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleCallbacks {
 
@@ -26,12 +26,32 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
 
     private final LinkedList<Activity> mActivityList = new LinkedList<>();
 
-    private final List<Utils.OnAppStatusChangedListener> mStatusListeners = new ArrayList<>();
+    private static final Activity STUB = new Activity();
     private final Map<Activity, List<Utils.ActivityLifecycleCallbacks>> mActivityLifecycleCallbacksMap = new ConcurrentHashMap<>();
-
+    private final List<Utils.OnAppStatusChangedListener> mStatusListeners = new CopyOnWriteArrayList<>();
     private int mForegroundCount = 0;
     private int mConfigCount = 0;
     private boolean mIsBackground = false;
+
+    void init(Application app) {
+        app.registerActivityLifecycleCallbacks(this);
+    }
+
+    void unInit(Application app) {
+        mActivityList.clear();
+        app.unregisterActivityLifecycleCallbacks(this);
+    }
+
+    Activity getTopActivity() {
+        List<Activity> activityList = getActivityList();
+        for (Activity activity : activityList) {
+            if (!UtilsBridge.isActivityAlive(activity)) {
+                continue;
+            }
+            return activity;
+        }
+        return null;
+    }
 
     /**
      * Set animators enabled.
@@ -57,46 +77,6 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         }
     }
 
-    void init(Application app) {
-        app.registerActivityLifecycleCallbacks(this);
-    }
-
-    void unInit(Application app) {
-        mActivityList.clear();
-        app.unregisterActivityLifecycleCallbacks(this);
-    }
-
-    Activity getTopActivity() {
-        List<Activity> activityList = getActivityList();
-        for (Activity activity : activityList) {
-            if (!UtilsBridge.isActivityAlive(activity)) {
-                continue;
-            }
-            return activity;
-        }
-        return null;
-    }
-
-    private void setTopActivity(final Activity activity) {
-        if (mActivityList.contains(activity)) {
-            if (!mActivityList.getFirst().equals(activity)) {
-                mActivityList.remove(activity);
-                mActivityList.addFirst(activity);
-            }
-        } else {
-            mActivityList.addFirst(activity);
-        }
-    }
-
-    List<Activity> getActivityList() {
-        if (!mActivityList.isEmpty()) {
-            return mActivityList;
-        }
-        List<Activity> reflectActivities = getActivitiesByReflect();
-        mActivityList.addAll(reflectActivities);
-        return mActivityList;
-    }
-
     void addOnAppStatusChangedListener(final Utils.OnAppStatusChangedListener listener) {
         mStatusListeners.add(listener);
     }
@@ -105,17 +85,105 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         mStatusListeners.remove(listener);
     }
 
+    List<Activity> getActivityList() {
+        if (!mActivityList.isEmpty()) {
+            return new LinkedList<>(mActivityList);
+        }
+        List<Activity> reflectActivities = getActivitiesByReflect();
+        mActivityList.addAll(reflectActivities);
+        return new LinkedList<>(mActivityList);
+    }
+
+    void addActivityLifecycleCallbacks(final Utils.ActivityLifecycleCallbacks listener) {
+        addActivityLifecycleCallbacks(STUB, listener);
+    }
+
     void addActivityLifecycleCallbacks(final Activity activity,
                                        final Utils.ActivityLifecycleCallbacks listener) {
-        if (activity == null || listener == null) {
-            return;
-        }
+        if (activity == null || listener == null) return;
         UtilsBridge.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 addActivityLifecycleCallbacksInner(activity, listener);
             }
         });
+    }
+
+    boolean isAppForeground() {
+        return !mIsBackground;
+    }
+
+    private void addActivityLifecycleCallbacksInner(final Activity activity,
+                                                    final Utils.ActivityLifecycleCallbacks callbacks) {
+        List<Utils.ActivityLifecycleCallbacks> callbacksList = mActivityLifecycleCallbacksMap.get(activity);
+        if (callbacksList == null) {
+            callbacksList = new CopyOnWriteArrayList<>();
+            mActivityLifecycleCallbacksMap.put(activity, callbacksList);
+        } else {
+            if (callbacksList.contains(callbacks)) return;
+        }
+        callbacksList.add(callbacks);
+    }
+
+    void removeActivityLifecycleCallbacks(final Utils.ActivityLifecycleCallbacks callbacks) {
+        removeActivityLifecycleCallbacks(STUB, callbacks);
+    }
+
+    void removeActivityLifecycleCallbacks(final Activity activity) {
+        if (activity == null) return;
+        UtilsBridge.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mActivityLifecycleCallbacksMap.remove(activity);
+            }
+        });
+    }
+
+    void removeActivityLifecycleCallbacks(final Activity activity,
+                                          final Utils.ActivityLifecycleCallbacks callbacks) {
+        if (activity == null || callbacks == null) return;
+        UtilsBridge.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                removeActivityLifecycleCallbacksInner(activity, callbacks);
+            }
+        });
+    }
+
+    private void removeActivityLifecycleCallbacksInner(final Activity activity,
+                                                       final Utils.ActivityLifecycleCallbacks callbacks) {
+        List<Utils.ActivityLifecycleCallbacks> callbacksList = mActivityLifecycleCallbacksMap.get(activity);
+        if (callbacksList != null && !callbacksList.isEmpty()) {
+            callbacksList.remove(callbacks);
+        }
+    }
+
+    private void consumeActivityLifecycleCallbacks(Activity activity, Lifecycle.Event event) {
+        consumeLifecycle(activity, event, mActivityLifecycleCallbacksMap.get(activity));
+        consumeLifecycle(activity, event, mActivityLifecycleCallbacksMap.get(STUB));
+    }
+
+    private void consumeLifecycle(Activity activity, Lifecycle.Event event, List<Utils.ActivityLifecycleCallbacks> listeners) {
+        if (listeners == null) return;
+        for (Utils.ActivityLifecycleCallbacks listener : listeners) {
+            listener.onLifecycleChanged(activity, event);
+            if (event.equals(Lifecycle.Event.ON_CREATE)) {
+                listener.onActivityCreated(activity);
+            } else if (event.equals(Lifecycle.Event.ON_START)) {
+                listener.onActivityStarted(activity);
+            } else if (event.equals(Lifecycle.Event.ON_RESUME)) {
+                listener.onActivityResumed(activity);
+            } else if (event.equals(Lifecycle.Event.ON_PAUSE)) {
+                listener.onActivityPaused(activity);
+            } else if (event.equals(Lifecycle.Event.ON_STOP)) {
+                listener.onActivityStopped(activity);
+            } else if (event.equals(Lifecycle.Event.ON_DESTROY)) {
+                listener.onActivityDestroyed(activity);
+            }
+        }
+        if (event.equals(Lifecycle.Event.ON_DESTROY)) {
+            mActivityLifecycleCallbacksMap.remove(activity);
+        }
     }
 
     Application getApplicationByReflect() {
@@ -137,89 +205,6 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
             e.printStackTrace();
         }
         return null;
-    }
-
-    private void addActivityLifecycleCallbacksInner(final Activity activity,
-                                                    final Utils.ActivityLifecycleCallbacks lifecycleCallbacks) {
-        List<Utils.ActivityLifecycleCallbacks> callbacks = mActivityLifecycleCallbacksMap.get(activity);
-        if (callbacks == null) {
-            callbacks = new ArrayList<>();
-            mActivityLifecycleCallbacksMap.put(activity, callbacks);
-        } else {
-            if (callbacks.contains(lifecycleCallbacks)) {
-                return;
-            }
-        }
-        callbacks.add(lifecycleCallbacks);
-    }
-
-    void removeActivityLifecycleCallbacks(final Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        UtilsBridge.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mActivityLifecycleCallbacksMap.remove(activity);
-            }
-        });
-    }
-
-    void removeActivityLifecycleCallbacks(final Activity activity,
-                                          final Utils.ActivityLifecycleCallbacks callbacks) {
-        if (activity == null || callbacks == null) {
-            return;
-        }
-        UtilsBridge.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                removeActivityLifecycleCallbacksInner(activity, callbacks);
-            }
-        });
-    }
-
-    private void removeActivityLifecycleCallbacksInner(final Activity activity,
-                                                       final Utils.ActivityLifecycleCallbacks lifecycleCallbacks) {
-        List<Utils.ActivityLifecycleCallbacks> callbacks = mActivityLifecycleCallbacksMap.get(activity);
-        if (callbacks != null && !callbacks.isEmpty()) {
-            callbacks.remove(lifecycleCallbacks);
-        }
-    }
-
-    private void consumeActivityLifecycleCallbacks(Activity activity, Lifecycle.Event event) {
-        List<Utils.ActivityLifecycleCallbacks> listeners = mActivityLifecycleCallbacksMap.get(activity);
-        if (listeners != null) {
-            for (Utils.ActivityLifecycleCallbacks listener : listeners) {
-                listener.onLifecycleChanged(activity, event);
-                if (event.equals(Lifecycle.Event.ON_CREATE)) {
-                    listener.onActivityCreated(activity);
-                } else if (event.equals(Lifecycle.Event.ON_START)) {
-                    listener.onActivityStarted(activity);
-                } else if (event.equals(Lifecycle.Event.ON_RESUME)) {
-                    listener.onActivityResumed(activity);
-                } else if (event.equals(Lifecycle.Event.ON_PAUSE)) {
-                    listener.onActivityPaused(activity);
-                } else if (event.equals(Lifecycle.Event.ON_STOP)) {
-                    listener.onActivityStopped(activity);
-                } else if (event.equals(Lifecycle.Event.ON_DESTROY)) {
-                    listener.onActivityDestroyed(activity);
-                }
-            }
-            if (event.equals(Lifecycle.Event.ON_DESTROY)) {
-                mActivityLifecycleCallbacksMap.remove(activity);
-            }
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // lifecycle start
-    ///////////////////////////////////////////////////////////////////////////
-    @Override
-    public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
-        UtilsBridge.applyLanguage(activity);
-        setAnimatorsEnabled();
-        setTopActivity(activity);
-        consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_CREATE);
     }
 
     @Override
@@ -265,9 +250,6 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         processHideSoftInputOnActivityDestroy(activity, true);
         consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_STOP);
     }
-    ///////////////////////////////////////////////////////////////////////////
-    // lifecycle end
-    ///////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onActivitySaveInstanceState(@NonNull Activity activity, Bundle outState) {/**/}
@@ -278,6 +260,20 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         UtilsBridge.fixSoftInputLeaks(activity);
         consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_DESTROY);
     }
+    ///////////////////////////////////////////////////////////////////////////
+    // lifecycle end
+    ///////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////
+    // lifecycle start
+    ///////////////////////////////////////////////////////////////////////////
+    @Override
+    public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+        LanguageUtils.applyLanguage(activity);
+        setAnimatorsEnabled();
+        setTopActivity(activity);
+        consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_CREATE);
+    }
 
     /**
      * To solve close keyboard when activity onDestroy.
@@ -285,32 +281,35 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
      * the keyboard from closing when curActivity onDestroy.
      */
     private void processHideSoftInputOnActivityDestroy(final Activity activity, boolean isSave) {
-        if (isSave) {
-            final WindowManager.LayoutParams attrs = activity.getWindow().getAttributes();
-            final int softInputMode = attrs.softInputMode;
-            activity.getWindow().getDecorView().setTag(-123, softInputMode);
-            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        } else {
-            final Object tag = activity.getWindow().getDecorView().getTag(-123);
-            if (!(tag instanceof Integer)) {
-                return;
-            }
-            UtilsBridge.runOnUiThreadDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Window window = activity.getWindow();
-                    if (window != null) {
-                        window.setSoftInputMode(((Integer) tag));
+        try {
+            if (isSave) {
+                Window window = activity.getWindow();
+                final WindowManager.LayoutParams attrs = window.getAttributes();
+                final int softInputMode = attrs.softInputMode;
+                window.getDecorView().setTag(-123, softInputMode);
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            } else {
+                final Object tag = activity.getWindow().getDecorView().getTag(-123);
+                if (!(tag instanceof Integer)) return;
+                UtilsBridge.runOnUiThreadDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Window window = activity.getWindow();
+                            if (window != null) {
+                                window.setSoftInputMode(((Integer) tag));
+                            }
+                        } catch (Exception ignore) {
+                        }
                     }
-                }
-            }, 100);
+                }, 100);
+            }
+        } catch (Exception ignore) {
         }
     }
 
     private void postStatus(final Activity activity, final boolean isForeground) {
-        if (mStatusListeners.isEmpty()) {
-            return;
-        }
+        if (mStatusListeners.isEmpty()) return;
         for (Utils.OnAppStatusChangedListener statusListener : mStatusListeners) {
             if (isForeground) {
                 statusListener.onForeground(activity);
@@ -361,16 +360,15 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         return list;
     }
 
-    private Object getActivityThread() {
-        Object activityThread = getActivityThreadInActivityThreadStaticField();
-        if (activityThread != null) {
-            return activityThread;
+    private void setTopActivity(final Activity activity) {
+        if (mActivityList.contains(activity)) {
+            if (!mActivityList.getFirst().equals(activity)) {
+                mActivityList.remove(activity);
+                mActivityList.addFirst(activity);
+            }
+        } else {
+            mActivityList.addFirst(activity);
         }
-        activityThread = getActivityThreadInActivityThreadStaticMethod();
-        if (activityThread != null) {
-            return activityThread;
-        }
-        return getActivityThreadInLoadedApkField();
     }
 
     private Object getActivityThreadInActivityThreadStaticField() {
@@ -395,17 +393,9 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         }
     }
 
-    private Object getActivityThreadInLoadedApkField() {
-        try {
-            Field mLoadedApkField = Application.class.getDeclaredField("mLoadedApk");
-            mLoadedApkField.setAccessible(true);
-            Object mLoadedApk = mLoadedApkField.get(Utils.getApp());
-            Field mActivityThreadField = mLoadedApk.getClass().getDeclaredField("mActivityThread");
-            mActivityThreadField.setAccessible(true);
-            return mActivityThreadField.get(mLoadedApk);
-        } catch (Exception e) {
-            Log.e("UtilsActivityLifecycle", "getActivityThreadInLoadedApkField: " + e.getMessage());
-            return null;
-        }
+    private Object getActivityThread() {
+        Object activityThread = getActivityThreadInActivityThreadStaticField();
+        if (activityThread != null) return activityThread;
+        return getActivityThreadInActivityThreadStaticMethod();
     }
 }

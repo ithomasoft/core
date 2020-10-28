@@ -1,6 +1,5 @@
 package com.thomas.core;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
@@ -9,8 +8,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class AppUtils {
+
     private AppUtils() {
         throw new UnsupportedOperationException("u can't instantiate me...");
     }
@@ -62,9 +64,7 @@ public final class AppUtils {
      */
     public static void installApp(final File file) {
         Intent installAppIntent = UtilsBridge.getInstallAppIntent(file);
-        if (installAppIntent == null) {
-            return;
-        }
+        if (installAppIntent == null) return;
         Utils.getApp().startActivity(installAppIntent);
     }
 
@@ -77,9 +77,7 @@ public final class AppUtils {
      */
     public static void installApp(final Uri uri) {
         Intent installAppIntent = UtilsBridge.getInstallAppIntent(uri);
-        if (installAppIntent == null) {
-            return;
-        }
+        if (installAppIntent == null) return;
         Utils.getApp().startActivity(installAppIntent);
     }
 
@@ -91,9 +89,7 @@ public final class AppUtils {
      * @param packageName The name of the package.
      */
     public static void uninstallApp(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return;
-        }
+        if (UtilsBridge.isSpace(packageName)) return;
         Utils.getApp().startActivity(UtilsBridge.getUninstallAppIntent(packageName));
     }
 
@@ -104,9 +100,7 @@ public final class AppUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isAppInstalled(final String pkgName) {
-        if (UtilsBridge.isSpace(pkgName)) {
-            return false;
-        }
+        if (UtilsBridge.isSpace(pkgName)) return false;
         PackageManager pm = Utils.getApp().getPackageManager();
         try {
             return pm.getApplicationInfo(pkgName, 0).enabled;
@@ -141,9 +135,7 @@ public final class AppUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isAppDebug(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return false;
-        }
+        if (UtilsBridge.isSpace(packageName)) return false;
         ApplicationInfo ai = Utils.getApp().getApplicationInfo();
         return ai != null && (ai.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
@@ -164,9 +156,7 @@ public final class AppUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isAppSystem(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return false;
-        }
+        if (UtilsBridge.isSpace(packageName)) return false;
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             ApplicationInfo ai = pm.getApplicationInfo(packageName, 0);
@@ -183,22 +173,7 @@ public final class AppUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isAppForeground() {
-        ActivityManager am = (ActivityManager) Utils.getApp().getSystemService(Context.ACTIVITY_SERVICE);
-        if (am == null) {
-            return false;
-        }
-        List<ActivityManager.RunningAppProcessInfo> info = am.getRunningAppProcesses();
-        if (info == null || info.size() == 0) {
-            return false;
-        }
-        for (ActivityManager.RunningAppProcessInfo aInfo : info) {
-            if (aInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                if (aInfo.processName.equals(Utils.getApp().getPackageName())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return UtilsBridge.isAppForeground();
     }
 
     /**
@@ -220,9 +195,7 @@ public final class AppUtils {
      * @return {@code true}: yes<br>{@code false}: no
      */
     public static boolean isAppRunning(final String pkgName) {
-        if (UtilsBridge.isSpace(pkgName)) {
-            return false;
-        }
+        if (UtilsBridge.isSpace(pkgName)) return false;
         ApplicationInfo ai = Utils.getApp().getApplicationInfo();
         int uid = ai.uid;
         ActivityManager am = (ActivityManager) Utils.getApp().getSystemService(Context.ACTIVITY_SERVICE);
@@ -255,9 +228,7 @@ public final class AppUtils {
      * @param packageName The name of the package.
      */
     public static void launchApp(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return;
-        }
+        if (UtilsBridge.isSpace(packageName)) return;
         Intent launchAppIntent = UtilsBridge.getLaunchAppIntent(packageName);
         if (launchAppIntent == null) {
             Log.e("AppUtils", "Didn't exist launcher activity.");
@@ -289,9 +260,7 @@ public final class AppUtils {
                         | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
         );
         Utils.getApp().startActivity(intent);
-        if (!isKillProcess) {
-            return;
-        }
+        if (!isKillProcess) return;
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);
     }
@@ -309,13 +278,9 @@ public final class AppUtils {
      * @param pkgName The name of the package.
      */
     public static void launchAppDetailsSettings(final String pkgName) {
-        if (UtilsBridge.isSpace(pkgName)) {
-            return;
-        }
+        if (UtilsBridge.isSpace(pkgName)) return;
         Intent intent = UtilsBridge.getLaunchAppDetailsSettingsIntent(pkgName, true);
-        if (!UtilsBridge.isIntentAvailable(intent)) {
-            return;
-        }
+        if (!UtilsBridge.isIntentAvailable(intent)) return;
         Utils.getApp().startActivity(intent);
     }
 
@@ -337,13 +302,9 @@ public final class AppUtils {
      * @param pkgName     The name of the package.
      */
     public static void launchAppDetailsSettings(final Activity activity, final int requestCode, final String pkgName) {
-        if (activity == null || UtilsBridge.isSpace(pkgName)) {
-            return;
-        }
+        if (activity == null || UtilsBridge.isSpace(pkgName)) return;
         Intent intent = UtilsBridge.getLaunchAppDetailsSettingsIntent(pkgName, false);
-        if (!UtilsBridge.isIntentAvailable(intent)) {
-            return;
-        }
+        if (!UtilsBridge.isIntentAvailable(intent)) return;
         activity.startActivityForResult(intent, requestCode);
     }
 
@@ -371,9 +332,7 @@ public final class AppUtils {
      * @return the application's icon
      */
     public static Drawable getAppIcon(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return null;
-        }
+        if (UtilsBridge.isSpace(packageName)) return null;
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -400,9 +359,7 @@ public final class AppUtils {
      * @return the application's icon resource identifier
      */
     public static int getAppIconId(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return 0;
-        }
+        if (UtilsBridge.isSpace(packageName)) return 0;
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -438,9 +395,7 @@ public final class AppUtils {
      * @return the application's name
      */
     public static String getAppName(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return "";
-        }
+        if (UtilsBridge.isSpace(packageName)) return "";
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -467,9 +422,7 @@ public final class AppUtils {
      * @return the application's path
      */
     public static String getAppPath(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return "";
-        }
+        if (UtilsBridge.isSpace(packageName)) return "";
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -496,9 +449,7 @@ public final class AppUtils {
      * @return the application's version name
      */
     public static String getAppVersionName(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return "";
-        }
+        if (UtilsBridge.isSpace(packageName)) return "";
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -525,9 +476,7 @@ public final class AppUtils {
      * @return the application's version code
      */
     public static int getAppVersionCode(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return -1;
-        }
+        if (UtilsBridge.isSpace(packageName)) return -1;
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
@@ -543,8 +492,8 @@ public final class AppUtils {
      *
      * @return the application's signature
      */
-    public static Signature[] getAppSignature() {
-        return getAppSignature(Utils.getApp().getPackageName());
+    public static Signature[] getAppSignatures() {
+        return getAppSignatures(Utils.getApp().getPackageName());
     }
 
     /**
@@ -553,15 +502,26 @@ public final class AppUtils {
      * @param packageName The name of the package.
      * @return the application's signature
      */
-    public static Signature[] getAppSignature(final String packageName) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return null;
-        }
+    public static Signature[] getAppSignatures(final String packageName) {
+        if (UtilsBridge.isSpace(packageName)) return null;
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
-            @SuppressLint("PackageManagerGetSignatures")
-            PackageInfo pi = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-            return pi == null ? null : pi.signatures;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                PackageInfo pi = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);
+                if (pi == null) return null;
+
+                SigningInfo signingInfo = pi.signingInfo;
+                if (signingInfo.hasMultipleSigners()) {
+                    return signingInfo.getApkContentsSigners();
+                } else {
+                    return signingInfo.getSigningCertificateHistory();
+                }
+            } else {
+                PackageInfo pi = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+                if (pi == null) return null;
+
+                return pi.signatures;
+            }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -569,12 +529,39 @@ public final class AppUtils {
     }
 
     /**
+     * Return the application's signature.
+     *
+     * @param file The file.
+     * @return the application's signature
+     */
+    public static Signature[] getAppSignatures(final File file) {
+        if (file == null) return null;
+        PackageManager pm = Utils.getApp().getPackageManager();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PackageInfo pi = pm.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
+            if (pi == null) return null;
+
+            SigningInfo signingInfo = pi.signingInfo;
+            if (signingInfo.hasMultipleSigners()) {
+                return signingInfo.getApkContentsSigners();
+            } else {
+                return signingInfo.getSigningCertificateHistory();
+            }
+        } else {
+            PackageInfo pi = pm.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNATURES);
+            if (pi == null) return null;
+
+            return pi.signatures;
+        }
+    }
+
+    /**
      * Return the application's signature for SHA1 value.
      *
      * @return the application's signature for SHA1 value
      */
-    public static String getAppSignatureSHA1() {
-        return getAppSignatureSHA1(Utils.getApp().getPackageName());
+    public static List<String> getAppSignaturesSHA1() {
+        return getAppSignaturesSHA1(Utils.getApp().getPackageName());
     }
 
     /**
@@ -583,8 +570,8 @@ public final class AppUtils {
      * @param packageName The name of the package.
      * @return the application's signature for SHA1 value
      */
-    public static String getAppSignatureSHA1(final String packageName) {
-        return getAppSignatureHash(packageName, "SHA1");
+    public static List<String> getAppSignaturesSHA1(final String packageName) {
+        return getAppSignaturesHash(packageName, "SHA1");
     }
 
     /**
@@ -592,8 +579,8 @@ public final class AppUtils {
      *
      * @return the application's signature for SHA256 value
      */
-    public static String getAppSignatureSHA256() {
-        return getAppSignatureSHA256(Utils.getApp().getPackageName());
+    public static List<String> getAppSignaturesSHA256() {
+        return getAppSignaturesSHA256(Utils.getApp().getPackageName());
     }
 
     /**
@@ -602,8 +589,8 @@ public final class AppUtils {
      * @param packageName The name of the package.
      * @return the application's signature for SHA256 value
      */
-    public static String getAppSignatureSHA256(final String packageName) {
-        return getAppSignatureHash(packageName, "SHA256");
+    public static List<String> getAppSignaturesSHA256(final String packageName) {
+        return getAppSignaturesHash(packageName, "SHA256");
     }
 
     /**
@@ -611,8 +598,8 @@ public final class AppUtils {
      *
      * @return the application's signature for MD5 value
      */
-    public static String getAppSignatureMD5() {
-        return getAppSignatureMD5(Utils.getApp().getPackageName());
+    public static List<String> getAppSignaturesMD5() {
+        return getAppSignaturesMD5(Utils.getApp().getPackageName());
     }
 
     /**
@@ -621,10 +608,9 @@ public final class AppUtils {
      * @param packageName The name of the package.
      * @return the application's signature for MD5 value
      */
-    public static String getAppSignatureMD5(final String packageName) {
-        return getAppSignatureHash(packageName, "MD5");
+    public static List<String> getAppSignaturesMD5(final String packageName) {
+        return getAppSignaturesHash(packageName, "MD5");
     }
-
 
     /**
      * Return the application's user-ID.
@@ -646,20 +632,21 @@ public final class AppUtils {
             return Utils.getApp().getPackageManager().getApplicationInfo(pkgName, 0).uid;
         } catch (Exception e) {
             e.printStackTrace();
+            return -1;
         }
-        return -1;
     }
 
-    private static String getAppSignatureHash(final String packageName, final String algorithm) {
-        if (UtilsBridge.isSpace(packageName)) {
-            return "";
+    private static List<String> getAppSignaturesHash(final String packageName, final String algorithm) {
+        ArrayList<String> result = new ArrayList<>();
+        if (UtilsBridge.isSpace(packageName)) return result;
+        Signature[] signatures = getAppSignatures(packageName);
+        if (signatures == null || signatures.length <= 0) return result;
+        for (Signature signature : signatures) {
+            String hash = UtilsBridge.bytes2HexString(UtilsBridge.hashTemplate(signature.toByteArray(), algorithm))
+                    .replaceAll("(?<=[0-9A-F]{2})[0-9A-F]{2}", ":$0");
+            result.add(hash);
         }
-        Signature[] signature = getAppSignature(packageName);
-        if (signature == null || signature.length <= 0) {
-            return "";
-        }
-        return UtilsBridge.bytes2HexString(UtilsBridge.hashTemplate(signature[0].toByteArray(), algorithm))
-                .replaceAll("(?<=[0-9A-F]{2})[0-9A-F]{2}", ":$0");
+        return result;
     }
 
     /**
@@ -698,9 +685,7 @@ public final class AppUtils {
     public static AppInfo getAppInfo(final String packageName) {
         try {
             PackageManager pm = Utils.getApp().getPackageManager();
-            if (pm == null) {
-                return null;
-            }
+            if (pm == null) return null;
             return getBean(pm, pm.getPackageInfo(packageName, 0));
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
@@ -716,15 +701,11 @@ public final class AppUtils {
     public static List<AppInfo> getAppsInfo() {
         List<AppInfo> list = new ArrayList<>();
         PackageManager pm = Utils.getApp().getPackageManager();
-        if (pm == null) {
-            return list;
-        }
+        if (pm == null) return list;
         List<PackageInfo> installedPackages = pm.getInstalledPackages(0);
         for (PackageInfo pi : installedPackages) {
             AppInfo ai = getBean(pm, pi);
-            if (ai == null) {
-                continue;
-            }
+            if (ai == null) continue;
             list.add(ai);
         }
         return list;
@@ -736,9 +717,7 @@ public final class AppUtils {
      * @return the application's package information
      */
     public static AppUtils.AppInfo getApkInfo(final File apkFile) {
-        if (apkFile == null || !apkFile.isFile() || !apkFile.exists()) {
-            return null;
-        }
+        if (apkFile == null || !apkFile.isFile() || !apkFile.exists()) return null;
         return getApkInfo(apkFile.getAbsolutePath());
     }
 
@@ -748,17 +727,11 @@ public final class AppUtils {
      * @return the application's package information
      */
     public static AppUtils.AppInfo getApkInfo(final String apkFilePath) {
-        if (UtilsBridge.isSpace(apkFilePath)) {
-            return null;
-        }
+        if (UtilsBridge.isSpace(apkFilePath)) return null;
         PackageManager pm = Utils.getApp().getPackageManager();
-        if (pm == null) {
-            return null;
-        }
+        if (pm == null) return null;
         PackageInfo pi = pm.getPackageArchiveInfo(apkFilePath, 0);
-        if (pi == null) {
-            return null;
-        }
+        if (pi == null) return null;
         ApplicationInfo appInfo = pi.applicationInfo;
         appInfo.sourceDir = apkFilePath;
         appInfo.publicSourceDir = apkFilePath;
@@ -766,9 +739,7 @@ public final class AppUtils {
     }
 
     private static AppInfo getBean(final PackageManager pm, final PackageInfo pi) {
-        if (pi == null) {
-            return null;
-        }
+        if (pi == null) return null;
         ApplicationInfo ai = pi.applicationInfo;
         String packageName = pi.packageName;
         String name = ai.loadLabel(pm).toString();
@@ -792,17 +763,6 @@ public final class AppUtils {
         private String versionName;
         private int versionCode;
         private boolean isSystem;
-
-        public AppInfo(String packageName, String name, Drawable icon, String packagePath,
-                       String versionName, int versionCode, boolean isSystem) {
-            this.setName(name);
-            this.setIcon(icon);
-            this.setPackageName(packageName);
-            this.setPackagePath(packagePath);
-            this.setVersionName(versionName);
-            this.setVersionCode(versionCode);
-            this.setSystem(isSystem);
-        }
 
         public Drawable getIcon() {
             return icon;
@@ -858,6 +818,17 @@ public final class AppUtils {
 
         public void setVersionName(final String versionName) {
             this.versionName = versionName;
+        }
+
+        public AppInfo(String packageName, String name, Drawable icon, String packagePath,
+                       String versionName, int versionCode, boolean isSystem) {
+            this.setName(name);
+            this.setIcon(icon);
+            this.setPackageName(packageName);
+            this.setPackagePath(packagePath);
+            this.setVersionName(versionName);
+            this.setVersionCode(versionCode);
+            this.setSystem(isSystem);
         }
 
         @Override

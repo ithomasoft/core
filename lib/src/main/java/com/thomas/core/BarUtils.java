@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.KeyCharacterMap;
@@ -47,7 +48,7 @@ public final class BarUtils {
      * @return the status bar's height
      */
     public static int getStatusBarHeight() {
-        Resources resources = Resources.getSystem();
+        Resources resources = Utils.getApp().getResources();
         int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
         return resources.getDimensionPixelSize(resourceId);
     }
@@ -155,14 +156,10 @@ public final class BarUtils {
      * @param view The view.
      */
     public static void addMarginTopEqualStatusBarHeight(@NonNull View view) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         view.setTag(TAG_OFFSET);
         Object haveSetOffset = view.getTag(KEY_OFFSET);
-        if (haveSetOffset != null && (Boolean) haveSetOffset) {
-            return;
-        }
+        if (haveSetOffset != null && (Boolean) haveSetOffset) return;
         MarginLayoutParams layoutParams = (MarginLayoutParams) view.getLayoutParams();
         layoutParams.setMargins(layoutParams.leftMargin,
                 layoutParams.topMargin + getStatusBarHeight(),
@@ -177,13 +174,9 @@ public final class BarUtils {
      * @param view The view.
      */
     public static void subtractMarginTopEqualStatusBarHeight(@NonNull View view) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         Object haveSetOffset = view.getTag(KEY_OFFSET);
-        if (haveSetOffset == null || !(Boolean) haveSetOffset) {
-            return;
-        }
+        if (haveSetOffset == null || !(Boolean) haveSetOffset) return;
         MarginLayoutParams layoutParams = (MarginLayoutParams) view.getLayoutParams();
         layoutParams.setMargins(layoutParams.leftMargin,
                 layoutParams.topMargin - getStatusBarHeight(),
@@ -193,24 +186,16 @@ public final class BarUtils {
     }
 
     private static void addMarginTopEqualStatusBarHeight(final Window window) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         View withTag = window.getDecorView().findViewWithTag(TAG_OFFSET);
-        if (withTag == null) {
-            return;
-        }
+        if (withTag == null) return;
         addMarginTopEqualStatusBarHeight(withTag);
     }
 
     private static void subtractMarginTopEqualStatusBarHeight(final Window window) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         View withTag = window.getDecorView().findViewWithTag(TAG_OFFSET);
-        if (withTag == null) {
-            return;
-        }
+        if (withTag == null) return;
         subtractMarginTopEqualStatusBarHeight(withTag);
     }
 
@@ -236,9 +221,7 @@ public final class BarUtils {
     public static View setStatusBarColor(@NonNull final Activity activity,
                                          @ColorInt final int color,
                                          final boolean isDecor) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return null;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return null;
         transparentStatusBar(activity);
         return applyStatusBarColor(activity, color, isDecor);
     }
@@ -266,9 +249,7 @@ public final class BarUtils {
     public static View setStatusBarColor(@NonNull final Window window,
                                          @ColorInt final int color,
                                          final boolean isDecor) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return null;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return null;
         transparentStatusBar(window);
         return applyStatusBarColor(window, color, isDecor);
     }
@@ -281,13 +262,9 @@ public final class BarUtils {
      */
     public static void setStatusBarColor(@NonNull final View fakeStatusBar,
                                          @ColorInt final int color) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         Activity activity = UtilsBridge.getActivityByContext(fakeStatusBar.getContext());
-        if (activity == null) {
-            return;
-        }
+        if (activity == null) return;
         transparentStatusBar(activity);
         fakeStatusBar.setVisibility(View.VISIBLE);
         ViewGroup.LayoutParams layoutParams = fakeStatusBar.getLayoutParams();
@@ -302,13 +279,9 @@ public final class BarUtils {
      * @param fakeStatusBar The fake status bar view.
      */
     public static void setStatusBarCustom(@NonNull final View fakeStatusBar) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         Activity activity = UtilsBridge.getActivityByContext(fakeStatusBar.getContext());
-        if (activity == null) {
-            return;
-        }
+        if (activity == null) return;
         transparentStatusBar(activity);
         fakeStatusBar.setVisibility(View.VISIBLE);
         ViewGroup.LayoutParams layoutParams = fakeStatusBar.getLayoutParams();
@@ -351,13 +324,9 @@ public final class BarUtils {
                                                 @NonNull final View fakeStatusBar,
                                                 @ColorInt final int color,
                                                 final boolean isTop) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         Activity activity = UtilsBridge.getActivityByContext(fakeStatusBar.getContext());
-        if (activity == null) {
-            return;
-        }
+        if (activity == null) return;
         transparentStatusBar(activity);
         drawer.setFitsSystemWindows(false);
         setStatusBarColor(fakeStatusBar, color);
@@ -403,18 +372,14 @@ public final class BarUtils {
     private static void hideStatusBarView(final Window window) {
         ViewGroup decorView = (ViewGroup) window.getDecorView();
         View fakeStatusBarView = decorView.findViewWithTag(TAG_STATUS_BAR);
-        if (fakeStatusBarView == null) {
-            return;
-        }
+        if (fakeStatusBarView == null) return;
         fakeStatusBarView.setVisibility(View.GONE);
     }
 
     private static void showStatusBarView(final Window window) {
         ViewGroup decorView = (ViewGroup) window.getDecorView();
         View fakeStatusBarView = decorView.findViewWithTag(TAG_STATUS_BAR);
-        if (fakeStatusBarView == null) {
-            return;
-        }
+        if (fakeStatusBarView == null) return;
         fakeStatusBarView.setVisibility(View.VISIBLE);
     }
 
@@ -433,9 +398,7 @@ public final class BarUtils {
     }
 
     public static void transparentStatusBar(final Window window) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -461,7 +424,7 @@ public final class BarUtils {
         TypedValue tv = new TypedValue();
         if (Utils.getApp().getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
             return TypedValue.complexToDimensionPixelSize(
-                    tv.data, Resources.getSystem().getDisplayMetrics()
+                    tv.data, Utils.getApp().getResources().getDisplayMetrics()
             );
         }
         return 0;
@@ -511,7 +474,7 @@ public final class BarUtils {
      * @return the navigation bar's height
      */
     public static int getNavBarHeight() {
-        Resources res = Resources.getSystem();
+        Resources res = Utils.getApp().getResources();
         int resourceId = res.getIdentifier("navigation_bar_height", "dimen", "android");
         if (resourceId != 0) {
             return res.getDimensionPixelSize(resourceId);
@@ -527,9 +490,7 @@ public final class BarUtils {
      * @param isVisible True to set navigation bar visible, false otherwise.
      */
     public static void setNavBarVisibility(@NonNull final Activity activity, boolean isVisible) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         setNavBarVisibility(activity.getWindow(), isVisible);
 
     }
@@ -541,9 +502,7 @@ public final class BarUtils {
      * @param isVisible True to set navigation bar visible, false otherwise.
      */
     public static void setNavBarVisibility(@NonNull final Window window, boolean isVisible) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return;
         final ViewGroup decorView = (ViewGroup) window.getDecorView();
         for (int i = 0, count = decorView.getChildCount(); i < count; i++) {
             final View child = decorView.getChildAt(i);
@@ -599,9 +558,22 @@ public final class BarUtils {
             }
         }
         if (isVisible) {
+            // 对于三星手机，android10以下非OneUI2的版本，比如 s8，note8 等设备上，
+            // 导航栏显示存在bug："当用户隐藏导航栏时显示输入法的时候导航栏会跟随显示"，会导致隐藏输入法之后判断错误
+            // 这个问题在 OneUI 2 & android 10 版本已修复
+            if (UtilsBridge.isSamsung()
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
+                    && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                try {
+                    return Settings.Global.getInt(Utils.getApp().getContentResolver(), "navigationbar_hide_bar_enabled") == 0;
+                } catch (Exception ignore) {
+                }
+            }
+
             int visibility = decorView.getSystemUiVisibility();
             isVisible = (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
         }
+
         return isVisible;
     }
 
@@ -666,9 +638,7 @@ public final class BarUtils {
     public static boolean isSupportNavBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             WindowManager wm = (WindowManager) Utils.getApp().getSystemService(Context.WINDOW_SERVICE);
-            if (wm == null) {
-                return false;
-            }
+            if (wm == null) return false;
             Display display = wm.getDefaultDisplay();
             Point size = new Point();
             Point realSize = new Point();
