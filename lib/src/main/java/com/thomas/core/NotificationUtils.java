@@ -1,6 +1,7 @@
 package com.thomas.core;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -20,12 +21,25 @@ import java.lang.reflect.Method;
 import static android.Manifest.permission.EXPAND_STATUS_BAR;
 
 public class NotificationUtils {
+
     public static final int IMPORTANCE_UNSPECIFIED = -1000;
     public static final int IMPORTANCE_NONE = 0;
     public static final int IMPORTANCE_MIN = 1;
     public static final int IMPORTANCE_LOW = 2;
     public static final int IMPORTANCE_DEFAULT = 3;
     public static final int IMPORTANCE_HIGH = 4;
+
+    /**
+     * Post a notification to be shown in the status bar.
+     *
+     * @param tag           A string identifier for this notification.  May be {@code null}.
+     * @param id            An identifier for this notification.
+     * @param channelConfig The notification channel of config.
+     * @param consumer      The consumer of create the builder of notification.
+     */
+    public static void notify(String tag, int id, ChannelConfig channelConfig, Utils.Consumer<NotificationCompat.Builder> consumer) {
+        NotificationManagerCompat.from(Utils.getApp()).notify(tag, id, getNotification(channelConfig, consumer));
+    }
 
     /**
      * Return whether the notifications enabled.
@@ -68,30 +82,28 @@ public class NotificationUtils {
         notify(null, id, channelConfig, consumer);
     }
 
-    /**
-     * Post a notification to be shown in the status bar.
-     *
-     * @param tag           A string identifier for this notification.  May be {@code null}.
-     * @param id            An identifier for this notification.
-     * @param channelConfig The notification channel of config.
-     * @param consumer      The consumer of create the builder of notification.
-     */
-    public static void notify(String tag, int id, ChannelConfig channelConfig, Utils.Consumer<NotificationCompat.Builder> consumer) {
+    public static Notification getNotification(ChannelConfig channelConfig, Utils.Consumer<NotificationCompat.Builder> consumer) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = (NotificationManager) Utils.getApp().getSystemService(Context.NOTIFICATION_SERVICE);
             //noinspection ConstantConditions
             nm.createNotificationChannel(channelConfig.getNotificationChannel());
         }
 
-        NotificationManagerCompat nmc = NotificationManagerCompat.from(Utils.getApp());
-
         NotificationCompat.Builder builder = new NotificationCompat.Builder(Utils.getApp());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(channelConfig.mNotificationChannel.getId());
         }
-        consumer.accept(builder);
+        if (consumer != null) {
+            consumer.accept(builder);
+        }
 
-        nmc.notify(tag, id, builder.build());
+        return builder.build();
+    }
+
+
+    @IntDef({IMPORTANCE_UNSPECIFIED, IMPORTANCE_NONE, IMPORTANCE_MIN, IMPORTANCE_LOW, IMPORTANCE_DEFAULT, IMPORTANCE_HIGH})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Importance {
     }
 
     /**
@@ -148,11 +160,6 @@ public class NotificationUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @IntDef({IMPORTANCE_UNSPECIFIED, IMPORTANCE_NONE, IMPORTANCE_MIN, IMPORTANCE_LOW, IMPORTANCE_DEFAULT, IMPORTANCE_HIGH})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Importance {
     }
 
     public static class ChannelConfig {

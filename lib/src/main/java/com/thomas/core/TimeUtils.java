@@ -24,27 +24,6 @@ public final class TimeUtils {
             return new HashMap<>();
         }
     };
-    private static final String[] CHINESE_ZODIAC =
-            {"猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊"};
-    private static final int[] ZODIAC_FLAGS = {20, 19, 21, 21, 21, 22, 23, 23, 23, 24, 23, 22};
-    private static final String[] ZODIAC = {
-            StringUtils.getString(R.string.zodiac_aquarius),
-            StringUtils.getString(R.string.zodiac_pisces),
-            StringUtils.getString(R.string.zodiac_aries),
-            StringUtils.getString(R.string.zodiac_taurus),
-            StringUtils.getString(R.string.zodiac_gemini),
-            StringUtils.getString(R.string.zodiac_cancer),
-            StringUtils.getString(R.string.zodiac_leo),
-            StringUtils.getString(R.string.zodiac_virgo),
-            StringUtils.getString(R.string.zodiac_libra),
-            StringUtils.getString(R.string.zodiac_scorpio),
-            StringUtils.getString(R.string.zodiac_sagittarius),
-            StringUtils.getString(R.string.zodiac_capricorn)
-    };
-
-    private TimeUtils() {
-        throw new UnsupportedOperationException("u can't instantiate me...");
-    }
 
     private static SimpleDateFormat getDefaultFormat() {
         return getSafeDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -61,6 +40,9 @@ public final class TimeUtils {
         }
         return simpleDateFormat;
     }
+
+    private static final String[] CHINESE_ZODIAC =
+            {"猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊"};
 
     /**
      * Milliseconds to the formatted time string.
@@ -656,46 +638,7 @@ public final class TimeUtils {
         return getFriendlyTimeSpanByNow(date.getTime());
     }
 
-    /**
-     * Return the friendly time span by now.
-     *
-     * @param millis The milliseconds.
-     * @return the friendly time span by now
-     * <ul>
-     * <li>如果小于 1 秒钟内，显示刚刚</li>
-     * <li>如果在 1 分钟内，显示 XXX秒前</li>
-     * <li>如果在 1 小时内，显示 XXX分钟前</li>
-     * <li>如果在 1 小时外的今天内，显示今天15:32</li>
-     * <li>如果是昨天的，显示昨天15:32</li>
-     * <li>其余显示，2016-10-15</li>
-     * <li>时间不合法的情况全部日期和时间信息，如星期六 十月 27 14:21:20 CST 2007</li>
-     * </ul>
-     */
-    public static String getFriendlyTimeSpanByNow(final long millis) {
-        long now = System.currentTimeMillis();
-        long span = now - millis;
-        if (span < 0)
-        // U can read http://www.apihome.cn/api/java/Formatter.html to understand it.
-        {
-            return String.format("%tc", millis);
-        }
-        if (span < 1000) {
-            return StringUtils.getString(R.string.time_format_just);
-        } else if (span < TimeConstants.MIN) {
-            return String.format(Locale.getDefault(), StringUtils.getString(R.string.time_format_seconds_ago), span / TimeConstants.SEC);
-        } else if (span < TimeConstants.HOUR) {
-            return String.format(Locale.getDefault(), StringUtils.getString(R.string.time_format_minute_ago), span / TimeConstants.MIN);
-        }
-        // 获取当天 00:00
-        long wee = getWeeOfToday();
-        if (millis >= wee) {
-            return String.format(StringUtils.getString(R.string.time_format_today), millis);
-        } else if (millis >= wee - TimeConstants.DAY) {
-            return String.format(StringUtils.getString(R.string.time_format_yesterday), millis);
-        } else {
-            return String.format("%tF", millis);
-        }
-    }
+    private static final int[] ZODIAC_FLAGS = {20, 19, 21, 21, 21, 22, 23, 23, 23, 24, 23, 22};
 
     private static long getWeeOfToday() {
         Calendar cal = Calendar.getInstance();
@@ -1476,6 +1419,11 @@ public final class TimeUtils {
         return cal.get(field);
     }
 
+    private static final String[] ZODIAC = {
+            "水瓶座", "双鱼座", "白羊座", "金牛座", "双子座", "巨蟹座",
+            "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座"
+    };
+
     /**
      * Return the Chinese zodiac.
      * <p>The pattern is {@code yyyy-MM-dd HH:mm:ss}.</p>
@@ -1528,6 +1476,49 @@ public final class TimeUtils {
      */
     public static String getChineseZodiac(final int year) {
         return CHINESE_ZODIAC[year % 12];
+    }
+
+    private TimeUtils() {
+        throw new UnsupportedOperationException("u can't instantiate me...");
+    }
+
+    /**
+     * Return the friendly time span by now.
+     *
+     * @param millis The milliseconds.
+     * @return the friendly time span by now
+     * <ul>
+     * <li>如果小于 1 秒钟内，显示刚刚</li>
+     * <li>如果在 1 分钟内，显示 XXX秒前</li>
+     * <li>如果在 1 小时内，显示 XXX分钟前</li>
+     * <li>如果在 1 小时外的今天内，显示今天15:32</li>
+     * <li>如果是昨天的，显示昨天15:32</li>
+     * <li>其余显示，2016-10-15</li>
+     * <li>时间不合法的情况全部日期和时间信息，如星期六 十月 27 14:21:20 CST 2007</li>
+     * </ul>
+     */
+    public static String getFriendlyTimeSpanByNow(final long millis) {
+        long now = System.currentTimeMillis();
+        long span = now - millis;
+        if (span < 0)
+            // U can read http://www.apihome.cn/api/java/Formatter.html to understand it.
+            return String.format("%tc", millis);
+        if (span < 1000) {
+            return "刚刚";
+        } else if (span < TimeConstants.MIN) {
+            return String.format(Locale.getDefault(), "%d秒前", span / TimeConstants.SEC);
+        } else if (span < TimeConstants.HOUR) {
+            return String.format(Locale.getDefault(), "%d分钟前", span / TimeConstants.MIN);
+        }
+        // 获取当天 00:00
+        long wee = getWeeOfToday();
+        if (millis >= wee) {
+            return String.format("今天%tR", millis);
+        } else if (millis >= wee - TimeConstants.DAY) {
+            return String.format("昨天%tR", millis);
+        } else {
+            return String.format("%tF", millis);
+        }
     }
 
     /**
@@ -1598,18 +1589,10 @@ public final class TimeUtils {
     }
 
     static String millis2FitTimeSpan(long millis, int precision) {
-        if (precision <= 0) {
-            return null;
-        }
+        if (precision <= 0) return null;
         precision = Math.min(precision, 5);
-        String[] units = {StringUtils.getString(R.string.time_unit_day),
-                StringUtils.getString(R.string.time_unit_hour),
-                StringUtils.getString(R.string.time_unit_minute),
-                StringUtils.getString(R.string.time_unit_second),
-                StringUtils.getString(R.string.time_unit_millisecond)};
-        if (millis == 0) {
-            return 0 + units[precision - 1];
-        }
+        String[] units = {"天", "小时", "分钟", "秒", "毫秒"};
+        if (millis == 0) return 0 + units[precision - 1];
         StringBuilder sb = new StringBuilder();
         if (millis < 0) {
             sb.append("-");
@@ -1625,5 +1608,4 @@ public final class TimeUtils {
         }
         return sb.toString();
     }
-
 }

@@ -854,9 +854,7 @@ public final class ThreadUtils {
      * @param task The task to cancel.
      */
     public static void cancel(final Task task) {
-        if (task == null) {
-            return;
-        }
+        if (task == null) return;
         task.cancel();
     }
 
@@ -866,13 +864,9 @@ public final class ThreadUtils {
      * @param tasks The tasks to cancel.
      */
     public static void cancel(final Task... tasks) {
-        if (tasks == null || tasks.length == 0) {
-            return;
-        }
+        if (tasks == null || tasks.length == 0) return;
         for (Task task : tasks) {
-            if (task == null) {
-                continue;
-            }
+            if (task == null) continue;
             task.cancel();
         }
     }
@@ -883,13 +877,9 @@ public final class ThreadUtils {
      * @param tasks The tasks to cancel.
      */
     public static void cancel(final List<Task> tasks) {
-        if (tasks == null || tasks.size() == 0) {
-            return;
-        }
+        if (tasks == null || tasks.size() == 0) return;
         for (Task task : tasks) {
-            if (task == null) {
-                continue;
-            }
+            if (task == null) continue;
             task.cancel();
         }
     }
@@ -1008,23 +998,40 @@ public final class ThreadUtils {
         return sDeliver;
     }
 
-    static final class ThreadPoolExecutor4Util extends ThreadPoolExecutor {
+    private static final class LinkedBlockingQueue4Util extends LinkedBlockingQueue<Runnable> {
 
-        private final AtomicInteger mSubmittedCount = new AtomicInteger();
-        private LinkedBlockingQueue4Util mWorkQueue;
+        private volatile ThreadPoolExecutor4Util mPool;
 
-        ThreadPoolExecutor4Util(int corePoolSize, int maximumPoolSize,
-                                long keepAliveTime, TimeUnit unit,
-                                LinkedBlockingQueue4Util workQueue,
-                                ThreadFactory threadFactory) {
-            super(corePoolSize, maximumPoolSize,
-                    keepAliveTime, unit,
-                    workQueue,
-                    threadFactory
-            );
-            workQueue.mPool = this;
-            mWorkQueue = workQueue;
+        private int mCapacity = Integer.MAX_VALUE;
+
+        LinkedBlockingQueue4Util() {
+            super();
         }
+
+        LinkedBlockingQueue4Util(boolean isAddSubThreadFirstThenAddQueue) {
+            super();
+            if (isAddSubThreadFirstThenAddQueue) {
+                mCapacity = 0;
+            }
+        }
+
+        LinkedBlockingQueue4Util(int capacity) {
+            super();
+            mCapacity = capacity;
+        }
+
+        @Override
+        public boolean offer(@NonNull Runnable runnable) {
+            if (mCapacity <= size() &&
+                    mPool != null && mPool.getPoolSize() < mPool.getMaximumPoolSize()) {
+                // create a non-core thread
+                return false;
+            }
+            return super.offer(runnable);
+        }
+    }
+
+    static final class ThreadPoolExecutor4Util extends ThreadPoolExecutor {
 
         private static ExecutorService createPool(final int type, final int priority) {
             switch (type) {
@@ -1061,6 +1068,23 @@ public final class ThreadUtils {
             }
         }
 
+        private final AtomicInteger mSubmittedCount = new AtomicInteger();
+
+        private LinkedBlockingQueue4Util mWorkQueue;
+
+        ThreadPoolExecutor4Util(int corePoolSize, int maximumPoolSize,
+                                long keepAliveTime, TimeUnit unit,
+                                LinkedBlockingQueue4Util workQueue,
+                                ThreadFactory threadFactory) {
+            super(corePoolSize, maximumPoolSize,
+                    keepAliveTime, unit,
+                    workQueue,
+                    threadFactory
+            );
+            workQueue.mPool = this;
+            mWorkQueue = workQueue;
+        }
+
         private int getSubmittedCount() {
             return mSubmittedCount.get();
         }
@@ -1073,9 +1097,7 @@ public final class ThreadUtils {
 
         @Override
         public void execute(@NonNull Runnable command) {
-            if (this.isShutdown()) {
-                return;
-            }
+            if (this.isShutdown()) return;
             mSubmittedCount.incrementAndGet();
             try {
                 super.execute(command);
@@ -1088,37 +1110,18 @@ public final class ThreadUtils {
         }
     }
 
-    private static final class LinkedBlockingQueue4Util extends LinkedBlockingQueue<Runnable> {
+    public abstract static class SimpleTask<T> extends Task<T> {
 
-        private volatile ThreadPoolExecutor4Util mPool;
-
-        private int mCapacity = Integer.MAX_VALUE;
-
-        LinkedBlockingQueue4Util() {
-            super();
-        }
-
-        LinkedBlockingQueue4Util(boolean isAddSubThreadFirstThenAddQueue) {
-            super();
-            if (isAddSubThreadFirstThenAddQueue) {
-                mCapacity = 0;
-            }
-        }
-
-        LinkedBlockingQueue4Util(int capacity) {
-            super();
-            mCapacity = capacity;
+        @Override
+        public void onCancel() {
+            Log.e("ThreadUtils", "onCancel: " + Thread.currentThread());
         }
 
         @Override
-        public boolean offer(@NonNull Runnable runnable) {
-            if (mCapacity <= size() &&
-                    mPool != null && mPool.getPoolSize() < mPool.getMaximumPoolSize()) {
-                // create a non-core thread
-                return false;
-            }
-            return super.offer(runnable);
+        public void onFail(Throwable t) {
+            Log.e("ThreadUtils", "onFail: ", t);
         }
+
     }
 
     static final class UtilsThreadFactory extends AtomicLong
@@ -1165,20 +1168,6 @@ public final class ThreadUtils {
         }
     }
 
-    public abstract static class SimpleTask<T> extends Task<T> {
-
-        @Override
-        public void onCancel() {
-            Log.e("ThreadUtils", "onCancel: " + Thread.currentThread());
-        }
-
-        @Override
-        public void onFail(Throwable t) {
-            Log.e("ThreadUtils", "onFail: ", t);
-        }
-
-    }
-
     public abstract static class Task<T> implements Runnable {
 
         private static final int NEW = 0;
@@ -1212,22 +1201,16 @@ public final class ThreadUtils {
         public void run() {
             if (isSchedule) {
                 if (runner == null) {
-                    if (!state.compareAndSet(NEW, RUNNING)) {
-                        return;
-                    }
+                    if (!state.compareAndSet(NEW, RUNNING)) return;
                     runner = Thread.currentThread();
                     if (mTimeoutListener != null) {
                         Log.w("ThreadUtils", "Scheduled task doesn't support timeout.");
                     }
                 } else {
-                    if (state.get() != RUNNING) {
-                        return;
-                    }
+                    if (state.get() != RUNNING) return;
                 }
             } else {
-                if (!state.compareAndSet(NEW, RUNNING)) {
-                    return;
-                }
+                if (!state.compareAndSet(NEW, RUNNING)) return;
                 runner = Thread.currentThread();
                 if (mTimeoutListener != null) {
                     mTimer = new Timer();
@@ -1237,6 +1220,7 @@ public final class ThreadUtils {
                             if (!isDone() && mTimeoutListener != null) {
                                 timeout();
                                 mTimeoutListener.onTimeout();
+                                onDone();
                             }
                         }
                     }, mTimeoutMillis);
@@ -1245,9 +1229,7 @@ public final class ThreadUtils {
             try {
                 final T result = doInBackground();
                 if (isSchedule) {
-                    if (state.get() != RUNNING) {
-                        return;
-                    }
+                    if (state.get() != RUNNING) return;
                     getDeliver().execute(new Runnable() {
                         @Override
                         public void run() {
@@ -1255,9 +1237,7 @@ public final class ThreadUtils {
                         }
                     });
                 } else {
-                    if (!state.compareAndSet(RUNNING, COMPLETING)) {
-                        return;
-                    }
+                    if (!state.compareAndSet(RUNNING, COMPLETING)) return;
                     getDeliver().execute(new Runnable() {
                         @Override
                         public void run() {
@@ -1269,9 +1249,7 @@ public final class ThreadUtils {
             } catch (InterruptedException ignore) {
                 state.compareAndSet(CANCELLED, INTERRUPTED);
             } catch (final Throwable throwable) {
-                if (!state.compareAndSet(RUNNING, EXCEPTIONAL)) {
-                    return;
-                }
+                if (!state.compareAndSet(RUNNING, EXCEPTIONAL)) return;
                 getDeliver().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -1288,9 +1266,7 @@ public final class ThreadUtils {
 
         public void cancel(boolean mayInterruptIfRunning) {
             synchronized (state) {
-                if (state.get() > RUNNING) {
-                    return;
-                }
+                if (state.get() > RUNNING) return;
                 state.set(CANCELLED);
             }
             if (mayInterruptIfRunning) {
@@ -1310,15 +1286,12 @@ public final class ThreadUtils {
 
         private void timeout() {
             synchronized (state) {
-                if (state.get() > RUNNING) {
-                    return;
-                }
+                if (state.get() > RUNNING) return;
                 state.set(TIMEOUT);
             }
             if (runner != null) {
                 runner.interrupt();
             }
-            onDone();
         }
 
 
@@ -1328,6 +1301,11 @@ public final class ThreadUtils {
 
         public boolean isDone() {
             return state.get() > RUNNING;
+        }
+
+        public Task<T> setDeliver(Executor deliver) {
+            this.deliver = deliver;
+            return this;
         }
 
         /**
@@ -1348,11 +1326,6 @@ public final class ThreadUtils {
                 return getGlobalDeliver();
             }
             return deliver;
-        }
-
-        public Task<T> setDeliver(Executor deliver) {
-            this.deliver = deliver;
-            return this;
         }
 
         @CallSuper
@@ -1376,6 +1349,13 @@ public final class ThreadUtils {
         private AtomicBoolean mFlag = new AtomicBoolean();
         private T mValue;
 
+        public void setValue(T value) {
+            if (mFlag.compareAndSet(false, true)) {
+                mValue = value;
+                mLatch.countDown();
+            }
+        }
+
         public T getValue() {
             if (!mFlag.get()) {
                 try {
@@ -1387,11 +1367,16 @@ public final class ThreadUtils {
             return mValue;
         }
 
-        public void setValue(T value) {
-            if (mFlag.compareAndSet(false, true)) {
-                mValue = value;
-                mLatch.countDown();
+        public T getValue(long timeout, TimeUnit unit, T defaultValue) {
+            if (!mFlag.get()) {
+                try {
+                    mLatch.await(timeout, unit);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return defaultValue;
+                }
             }
+            return mValue;
         }
     }
 }

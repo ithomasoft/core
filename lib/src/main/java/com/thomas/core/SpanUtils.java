@@ -63,12 +63,13 @@ import static android.graphics.BlurMaskFilter.Blur;
 
 public final class SpanUtils {
     public static final int ALIGN_BOTTOM = 0;
-    public static final int ALIGN_BASELINE = 1;
     public static final int ALIGN_CENTER = 2;
+    public static final int ALIGN_BASELINE = 1;
     public static final int ALIGN_TOP = 3;
     private static final int COLOR_DEFAULT = 0xFEFFFFFF;
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private final int mTypeCharSequence = 0;
+
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private final int mTypeImage = 1;
     private final int mTypeSpace = 2;
     private TextView mTextView;
@@ -100,8 +101,8 @@ public final class SpanUtils {
     private String fontFamily;
     private Typeface typeface;
     private Alignment alignment;
-    private int verticalAlign;
     private ClickableSpan clickSpan;
+    private int verticalAlign;
     private String url;
     private float blurRadius;
     private Blur style;
@@ -111,16 +112,35 @@ public final class SpanUtils {
     private float shadowDy;
     private int shadowColor;
     private Object[] spans;
-    private Bitmap imageBitmap;
     private Drawable imageDrawable;
+    private Bitmap imageBitmap;
     private Uri imageUri;
     private int imageResourceId;
-    private int alignImage;
+
     private int spaceSize;
     private int spaceColor;
+
     private SerializableSpannableStringBuilder mBuilder;
     private boolean isCreated;
+    private int alignImage;
     private int mType;
+
+    public static SpanUtils with(final TextView textView) {
+        return new SpanUtils(textView);
+    }
+
+    /**
+     * Set the span of click.
+     * <p>Must set {@code view.setMovementMethod(LinkMovementMethod.getInstance())}</p>
+     *
+     * @param clickSpan The span of click.
+     * @return the single {@link SpanUtils} instance
+     */
+    public SpanUtils setClickSpan(@NonNull final ClickableSpan clickSpan) {
+        setMovementMethodIfNeed();
+        this.clickSpan = clickSpan;
+        return this;
+    }
 
     private SpanUtils(TextView textView) {
         this();
@@ -132,10 +152,6 @@ public final class SpanUtils {
         mText = "";
         mType = -1;
         setDefault();
-    }
-
-    public static SpanUtils with(final TextView textView) {
-        return new SpanUtils(textView);
     }
 
     private void setDefault() {
@@ -490,21 +506,6 @@ public final class SpanUtils {
      * Set the span of click.
      * <p>Must set {@code view.setMovementMethod(LinkMovementMethod.getInstance())}</p>
      *
-     * @param clickSpan The span of click.
-     * @return the single {@link SpanUtils} instance
-     */
-    public SpanUtils setClickSpan(@NonNull final ClickableSpan clickSpan) {
-        if (mTextView != null && mTextView.getMovementMethod() == null) {
-            mTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        }
-        this.clickSpan = clickSpan;
-        return this;
-    }
-
-    /**
-     * Set the span of click.
-     * <p>Must set {@code view.setMovementMethod(LinkMovementMethod.getInstance())}</p>
-     *
      * @param color         The color of click span.
      * @param underlineText True to support underline, false otherwise.
      * @param listener      The listener of click span.
@@ -513,9 +514,7 @@ public final class SpanUtils {
     public SpanUtils setClickSpan(@ColorInt final int color,
                                   final boolean underlineText,
                                   final View.OnClickListener listener) {
-        if (mTextView != null && mTextView.getMovementMethod() == null) {
-            mTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        }
+        setMovementMethodIfNeed();
         this.clickSpan = new ClickableSpan() {
 
             @Override
@@ -542,11 +541,128 @@ public final class SpanUtils {
      * @return the single {@link SpanUtils} instance
      */
     public SpanUtils setUrl(@NonNull final String url) {
+        setMovementMethodIfNeed();
+        this.url = url;
+        return this;
+    }
+
+    private void setMovementMethodIfNeed() {
         if (mTextView != null && mTextView.getMovementMethod() == null) {
             mTextView.setMovementMethod(LinkMovementMethod.getInstance());
         }
-        this.url = url;
-        return this;
+    }
+
+    private void updateCharCharSequence() {
+        if (mText.length() == 0) return;
+        int start = mBuilder.length();
+        if (start == 0 && lineHeight != -1) {// bug of LineHeightSpan when first line
+            mBuilder.append(Character.toString((char) 2))
+                    .append("\n")
+                    .setSpan(new AbsoluteSizeSpan(0), 0, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            start = 2;
+        }
+        mBuilder.append(mText);
+        int end = mBuilder.length();
+        if (verticalAlign != -1) {
+            mBuilder.setSpan(new VerticalAlignSpan(verticalAlign), start, end, flag);
+        }
+        if (foregroundColor != COLOR_DEFAULT) {
+            mBuilder.setSpan(new ForegroundColorSpan(foregroundColor), start, end, flag);
+        }
+        if (backgroundColor != COLOR_DEFAULT) {
+            mBuilder.setSpan(new BackgroundColorSpan(backgroundColor), start, end, flag);
+        }
+        if (first != -1) {
+            mBuilder.setSpan(new LeadingMarginSpan.Standard(first, rest), start, end, flag);
+        }
+        if (quoteColor != COLOR_DEFAULT) {
+            mBuilder.setSpan(
+                    new CustomQuoteSpan(quoteColor, stripeWidth, quoteGapWidth),
+                    start,
+                    end,
+                    flag
+            );
+        }
+        if (bulletColor != COLOR_DEFAULT) {
+            mBuilder.setSpan(
+                    new CustomBulletSpan(bulletColor, bulletRadius, bulletGapWidth),
+                    start,
+                    end,
+                    flag
+            );
+        }
+        if (fontSize != -1) {
+            mBuilder.setSpan(new AbsoluteSizeSpan(fontSize, fontSizeIsDp), start, end, flag);
+        }
+        if (proportion != -1) {
+            mBuilder.setSpan(new RelativeSizeSpan(proportion), start, end, flag);
+        }
+        if (xProportion != -1) {
+            mBuilder.setSpan(new ScaleXSpan(xProportion), start, end, flag);
+        }
+        if (lineHeight != -1) {
+            mBuilder.setSpan(new CustomLineHeightSpan(lineHeight, alignLine), start, end, flag);
+        }
+        if (isStrikethrough) {
+            mBuilder.setSpan(new StrikethroughSpan(), start, end, flag);
+        }
+        if (isUnderline) {
+            mBuilder.setSpan(new UnderlineSpan(), start, end, flag);
+        }
+        if (isSuperscript) {
+            mBuilder.setSpan(new SuperscriptSpan(), start, end, flag);
+        }
+        if (isSubscript) {
+            mBuilder.setSpan(new SubscriptSpan(), start, end, flag);
+        }
+        if (isBold) {
+            mBuilder.setSpan(new StyleSpan(Typeface.BOLD), start, end, flag);
+        }
+        if (isItalic) {
+            mBuilder.setSpan(new StyleSpan(Typeface.ITALIC), start, end, flag);
+        }
+        if (isBoldItalic) {
+            mBuilder.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), start, end, flag);
+        }
+        if (fontFamily != null) {
+            mBuilder.setSpan(new TypefaceSpan(fontFamily), start, end, flag);
+        }
+        if (typeface != null) {
+            mBuilder.setSpan(new CustomTypefaceSpan(typeface), start, end, flag);
+        }
+        if (alignment != null) {
+            mBuilder.setSpan(new AlignmentSpan.Standard(alignment), start, end, flag);
+        }
+        if (clickSpan != null) {
+            mBuilder.setSpan(clickSpan, start, end, flag);
+        }
+        if (url != null) {
+            mBuilder.setSpan(new URLSpan(url), start, end, flag);
+        }
+        if (blurRadius != -1) {
+            mBuilder.setSpan(
+                    new MaskFilterSpan(new BlurMaskFilter(blurRadius, style)),
+                    start,
+                    end,
+                    flag
+            );
+        }
+        if (shader != null) {
+            mBuilder.setSpan(new ShaderSpan(shader), start, end, flag);
+        }
+        if (shadowRadius != -1) {
+            mBuilder.setSpan(
+                    new ShadowSpan(shadowRadius, shadowDx, shadowDy, shadowColor),
+                    start,
+                    end,
+                    flag
+            );
+        }
+        if (spans != null) {
+            for (Object span : spans) {
+                mBuilder.setSpan(span, start, end, flag);
+            }
+        }
     }
 
     /**
@@ -599,6 +715,7 @@ public final class SpanUtils {
         this.shadowColor = shadowColor;
         return this;
     }
+
 
     /**
      * Set the spans.
@@ -828,119 +945,9 @@ public final class SpanUtils {
         setDefault();
     }
 
-    private void updateCharCharSequence() {
-        if (mText.length() == 0) {
-            return;
-        }
-        int start = mBuilder.length();
-        if (start == 0 && lineHeight != -1) {// bug of LineHeightSpan when first line
-            mBuilder.append(Character.toString((char) 2))
-                    .append("\n")
-                    .setSpan(new AbsoluteSizeSpan(0), 0, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            start = 2;
-        }
-        mBuilder.append(mText);
-        int end = mBuilder.length();
-        if (verticalAlign != -1) {
-            mBuilder.setSpan(new VerticalAlignSpan(verticalAlign), start, end, flag);
-        }
-        if (foregroundColor != COLOR_DEFAULT) {
-            mBuilder.setSpan(new ForegroundColorSpan(foregroundColor), start, end, flag);
-        }
-        if (backgroundColor != COLOR_DEFAULT) {
-            mBuilder.setSpan(new BackgroundColorSpan(backgroundColor), start, end, flag);
-        }
-        if (first != -1) {
-            mBuilder.setSpan(new LeadingMarginSpan.Standard(first, rest), start, end, flag);
-        }
-        if (quoteColor != COLOR_DEFAULT) {
-            mBuilder.setSpan(
-                    new CustomQuoteSpan(quoteColor, stripeWidth, quoteGapWidth),
-                    start,
-                    end,
-                    flag
-            );
-        }
-        if (bulletColor != COLOR_DEFAULT) {
-            mBuilder.setSpan(
-                    new CustomBulletSpan(bulletColor, bulletRadius, bulletGapWidth),
-                    start,
-                    end,
-                    flag
-            );
-        }
-        if (fontSize != -1) {
-            mBuilder.setSpan(new AbsoluteSizeSpan(fontSize, fontSizeIsDp), start, end, flag);
-        }
-        if (proportion != -1) {
-            mBuilder.setSpan(new RelativeSizeSpan(proportion), start, end, flag);
-        }
-        if (xProportion != -1) {
-            mBuilder.setSpan(new ScaleXSpan(xProportion), start, end, flag);
-        }
-        if (lineHeight != -1) {
-            mBuilder.setSpan(new CustomLineHeightSpan(lineHeight, alignLine), start, end, flag);
-        }
-        if (isStrikethrough) {
-            mBuilder.setSpan(new StrikethroughSpan(), start, end, flag);
-        }
-        if (isUnderline) {
-            mBuilder.setSpan(new UnderlineSpan(), start, end, flag);
-        }
-        if (isSuperscript) {
-            mBuilder.setSpan(new SuperscriptSpan(), start, end, flag);
-        }
-        if (isSubscript) {
-            mBuilder.setSpan(new SubscriptSpan(), start, end, flag);
-        }
-        if (isBold) {
-            mBuilder.setSpan(new StyleSpan(Typeface.BOLD), start, end, flag);
-        }
-        if (isItalic) {
-            mBuilder.setSpan(new StyleSpan(Typeface.ITALIC), start, end, flag);
-        }
-        if (isBoldItalic) {
-            mBuilder.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), start, end, flag);
-        }
-        if (fontFamily != null) {
-            mBuilder.setSpan(new TypefaceSpan(fontFamily), start, end, flag);
-        }
-        if (typeface != null) {
-            mBuilder.setSpan(new CustomTypefaceSpan(typeface), start, end, flag);
-        }
-        if (alignment != null) {
-            mBuilder.setSpan(new AlignmentSpan.Standard(alignment), start, end, flag);
-        }
-        if (clickSpan != null) {
-            mBuilder.setSpan(clickSpan, start, end, flag);
-        }
-        if (url != null) {
-            mBuilder.setSpan(new URLSpan(url), start, end, flag);
-        }
-        if (blurRadius != -1) {
-            mBuilder.setSpan(
-                    new MaskFilterSpan(new BlurMaskFilter(blurRadius, style)),
-                    start,
-                    end,
-                    flag
-            );
-        }
-        if (shader != null) {
-            mBuilder.setSpan(new ShaderSpan(shader), start, end, flag);
-        }
-        if (shadowRadius != -1) {
-            mBuilder.setSpan(
-                    new ShadowSpan(shadowRadius, shadowDx, shadowDy, shadowColor),
-                    start,
-                    end,
-                    flag
-            );
-        }
-        if (spans != null) {
-            for (Object span : spans) {
-                mBuilder.setSpan(span, start, end, flag);
-            }
-        }
+    @IntDef({ALIGN_BOTTOM, ALIGN_BASELINE, ALIGN_CENTER, ALIGN_TOP})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Align {
     }
 
     private void updateImage() {
@@ -965,11 +972,6 @@ public final class SpanUtils {
         updateCharCharSequence();
         int end = mBuilder.length();
         mBuilder.setSpan(new SpaceSpan(spaceSize, spaceColor), start, end, flag);
-    }
-
-    @IntDef({ALIGN_BOTTOM, ALIGN_BASELINE, ALIGN_CENTER, ALIGN_TOP})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Align {
     }
 
     static class VerticalAlignSpan extends ReplacementSpan {
@@ -1022,8 +1024,9 @@ public final class SpanUtils {
 
     static class CustomLineHeightSpan implements LineHeightSpan {
 
-        static final int ALIGN_CENTER = 2;
         static final int ALIGN_TOP = 3;
+
+        static final int ALIGN_CENTER = 2;
         static Paint.FontMetricsInt sfm;
         final int mVerticalAlignment;
         private final int height;
@@ -1127,12 +1130,10 @@ public final class SpanUtils {
             this.gapWidth = gapWidth;
         }
 
-        @Override
         public int getLeadingMargin(final boolean first) {
             return stripeWidth + gapWidth;
         }
 
-        @Override
         public void drawLeadingMargin(final Canvas c, final Paint p, final int x, final int dir,
                                       final int top, final int baseline, final int bottom,
                                       final CharSequence text, final int start, final int end,
@@ -1164,12 +1165,10 @@ public final class SpanUtils {
             this.gapWidth = gapWidth;
         }
 
-        @Override
         public int getLeadingMargin(final boolean first) {
             return 2 * radius + gapWidth;
         }
 
-        @Override
         public void drawLeadingMargin(final Canvas c, final Paint p, final int x, final int dir,
                                       final int top, final int baseline, final int bottom,
                                       final CharSequence text, final int start, final int end,
@@ -1320,7 +1319,6 @@ public final class SpanUtils {
         static final int ALIGN_TOP = 3;
 
         final int mVerticalAlignment;
-        private WeakReference<Drawable> mDrawableRef;
 
         private CustomDynamicDrawableSpan() {
             mVerticalAlignment = ALIGN_BOTTOM;
@@ -1403,6 +1401,8 @@ public final class SpanUtils {
             }
             return d;
         }
+
+        private WeakReference<Drawable> mDrawableRef;
     }
 
     static class ShaderSpan extends CharacterStyle implements UpdateAppearance {

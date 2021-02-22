@@ -10,6 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 
 import java.lang.reflect.Field;
@@ -27,8 +28,8 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
     private final LinkedList<Activity> mActivityList = new LinkedList<>();
 
     private static final Activity STUB = new Activity();
-    private final Map<Activity, List<Utils.ActivityLifecycleCallbacks>> mActivityLifecycleCallbacksMap = new ConcurrentHashMap<>();
     private final List<Utils.OnAppStatusChangedListener> mStatusListeners = new CopyOnWriteArrayList<>();
+    private final Map<Activity, List<Utils.ActivityLifecycleCallbacks>> mActivityLifecycleCallbacksMap = new ConcurrentHashMap<>();
     private int mForegroundCount = 0;
     private int mConfigCount = 0;
     private boolean mIsBackground = false;
@@ -51,6 +52,15 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
             return activity;
         }
         return null;
+    }
+
+    List<Activity> getActivityList() {
+        if (!mActivityList.isEmpty()) {
+            return new LinkedList<>(mActivityList);
+        }
+        List<Activity> reflectActivities = getActivitiesByReflect();
+        mActivityList.addAll(reflectActivities);
+        return new LinkedList<>(mActivityList);
     }
 
     /**
@@ -79,19 +89,6 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
 
     void addOnAppStatusChangedListener(final Utils.OnAppStatusChangedListener listener) {
         mStatusListeners.add(listener);
-    }
-
-    void removeOnAppStatusChangedListener(final Utils.OnAppStatusChangedListener listener) {
-        mStatusListeners.remove(listener);
-    }
-
-    List<Activity> getActivityList() {
-        if (!mActivityList.isEmpty()) {
-            return new LinkedList<>(mActivityList);
-        }
-        List<Activity> reflectActivities = getActivitiesByReflect();
-        mActivityList.addAll(reflectActivities);
-        return new LinkedList<>(mActivityList);
     }
 
     void addActivityLifecycleCallbacks(final Utils.ActivityLifecycleCallbacks listener) {
@@ -207,6 +204,30 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         return null;
     }
 
+    void removeOnAppStatusChangedListener(final Utils.OnAppStatusChangedListener listener) {
+        mStatusListeners.remove(listener);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // lifecycle start
+    ///////////////////////////////////////////////////////////////////////////
+    @Override
+    public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {/**/}
+
+    @Override
+    public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+        if (mActivityList.size() == 0) {
+            postStatus(activity, true);
+        }
+        LanguageUtils.applyLanguage(activity);
+        setAnimatorsEnabled();
+        setTopActivity(activity);
+        consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_CREATE);
+    }
+
+    @Override
+    public void onActivityPostCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {/**/}
+
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
         if (!mIsBackground) {
@@ -221,6 +242,12 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
     }
 
     @Override
+    public void onActivityPreStarted(@NonNull Activity activity) {/**/}
+
+    @Override
+    public void onActivityPostStarted(@NonNull Activity activity) {/**/}
+
+    @Override
     public void onActivityResumed(@NonNull final Activity activity) {
         setTopActivity(activity);
         if (mIsBackground) {
@@ -232,9 +259,21 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
     }
 
     @Override
+    public void onActivityPreResumed(@NonNull Activity activity) {/**/}
+
+    @Override
+    public void onActivityPostResumed(@NonNull Activity activity) {/**/}
+
+    @Override
     public void onActivityPaused(@NonNull Activity activity) {
         consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_PAUSE);
     }
+
+    @Override
+    public void onActivityPrePaused(@NonNull Activity activity) {/**/}
+
+    @Override
+    public void onActivityPostPaused(@NonNull Activity activity) {/**/}
 
     @Override
     public void onActivityStopped(Activity activity) {
@@ -252,7 +291,19 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
     }
 
     @Override
-    public void onActivitySaveInstanceState(@NonNull Activity activity, Bundle outState) {/**/}
+    public void onActivityPreStopped(@NonNull Activity activity) {/**/}
+
+    @Override
+    public void onActivityPostStopped(@NonNull Activity activity) {/**/}
+
+    @Override
+    public void onActivityPreSaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {/**/}
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {/**/}
+
+    @Override
+    public void onActivityPostSaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {/**/}
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
@@ -260,20 +311,12 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         UtilsBridge.fixSoftInputLeaks(activity);
         consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_DESTROY);
     }
+
+    @Override
+    public void onActivityPreDestroyed(@NonNull Activity activity) {/**/}
     ///////////////////////////////////////////////////////////////////////////
     // lifecycle end
     ///////////////////////////////////////////////////////////////////////////
-
-    ///////////////////////////////////////////////////////////////////////////
-    // lifecycle start
-    ///////////////////////////////////////////////////////////////////////////
-    @Override
-    public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
-        LanguageUtils.applyLanguage(activity);
-        setAnimatorsEnabled();
-        setTopActivity(activity);
-        consumeActivityLifecycleCallbacks(activity, Lifecycle.Event.ON_CREATE);
-    }
 
     /**
      * To solve close keyboard when activity onDestroy.
@@ -318,6 +361,9 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
             }
         }
     }
+
+    @Override
+    public void onActivityPostDestroyed(@NonNull Activity activity) {/**/}
 
     /**
      * @return the activities which topActivity is first position

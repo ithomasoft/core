@@ -82,9 +82,6 @@ public final class DeviceUtils {
         return android.os.Build.VERSION.SDK_INT;
     }
 
-    private static final String KEY_UDID = "KEY_UDID";
-    private volatile static String udid;
-
     /**
      * Return the android id of device.
      *
@@ -100,6 +97,9 @@ public final class DeviceUtils {
         return id == null ? "" : id;
     }
 
+    private static final String KEY_UDID = "KEY_UDID";
+    private volatile static String udid;
+
     /**
      * Return the MAC address.
      * <p>Must hold {@code <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />},
@@ -108,7 +108,7 @@ public final class DeviceUtils {
      *
      * @return the MAC address
      */
-    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, INTERNET, CHANGE_WIFI_STATE})
+    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, CHANGE_WIFI_STATE})
     public static String getMacAddress() {
         String macAddress = getMacAddress((String[]) null);
         if (!TextUtils.isEmpty(macAddress) || getWifiEnabled()) return macAddress;
@@ -117,54 +117,11 @@ public final class DeviceUtils {
         return getMacAddress((String[]) null);
     }
 
-    /**
-     * Return the MAC address.
-     * <p>Must hold {@code <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />},
-     * {@code <uses-permission android:name="android.permission.INTERNET" />}</p>
-     *
-     * @return the MAC address
-     */
-    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, INTERNET})
-    public static String getMacAddress(final String... excepts) {
-        String macAddress = getMacAddressByNetworkInterface();
-        if (isAddressNotInExcepts(macAddress, excepts)) {
-            return macAddress;
-        }
-        macAddress = getMacAddressByInetAddress();
-        if (isAddressNotInExcepts(macAddress, excepts)) {
-            return macAddress;
-        }
-        macAddress = getMacAddressByWifiInfo();
-        if (isAddressNotInExcepts(macAddress, excepts)) {
-            return macAddress;
-        }
-        macAddress = getMacAddressByFile();
-        if (isAddressNotInExcepts(macAddress, excepts)) {
-            return macAddress;
-        }
-        return "";
-    }
-
     private static boolean getWifiEnabled() {
         @SuppressLint("WifiManagerLeak")
         WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
         if (manager == null) return false;
         return manager.isWifiEnabled();
-    }
-
-    /**
-     * Enable or disable wifi.
-     * <p>Must hold {@code <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />}</p>
-     *
-     * @param enabled True to enabled, false otherwise.
-     */
-    @RequiresPermission(CHANGE_WIFI_STATE)
-    private static void setWifiEnabled(final boolean enabled) {
-        @SuppressLint("WifiManagerLeak")
-        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
-        if (manager == null) return;
-        if (enabled == manager.isWifiEnabled()) return;
-        manager.setWifiEnabled(enabled);
     }
 
     private static boolean isAddressNotInExcepts(final String address, final String... excepts) {
@@ -183,6 +140,49 @@ public final class DeviceUtils {
             }
         }
         return true;
+    }
+
+    /**
+     * Enable or disable wifi.
+     * <p>Must hold {@code <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />}</p>
+     *
+     * @param enabled True to enabled, false otherwise.
+     */
+    @RequiresPermission(CHANGE_WIFI_STATE)
+    private static void setWifiEnabled(final boolean enabled) {
+        @SuppressLint("WifiManagerLeak")
+        WifiManager manager = (WifiManager) Utils.getApp().getSystemService(WIFI_SERVICE);
+        if (manager == null) return;
+        if (enabled == manager.isWifiEnabled()) return;
+        manager.setWifiEnabled(enabled);
+    }
+
+    /**
+     * Return the MAC address.
+     * <p>Must hold {@code <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />},
+     * {@code <uses-permission android:name="android.permission.INTERNET" />}</p>
+     *
+     * @return the MAC address
+     */
+    @RequiresPermission(allOf = {ACCESS_WIFI_STATE})
+    public static String getMacAddress(final String... excepts) {
+        String macAddress = getMacAddressByNetworkInterface();
+        if (isAddressNotInExcepts(macAddress, excepts)) {
+            return macAddress;
+        }
+        macAddress = getMacAddressByInetAddress();
+        if (isAddressNotInExcepts(macAddress, excepts)) {
+            return macAddress;
+        }
+        macAddress = getMacAddressByWifiInfo();
+        if (isAddressNotInExcepts(macAddress, excepts)) {
+            return macAddress;
+        }
+        macAddress = getMacAddressByFile();
+        if (isAddressNotInExcepts(macAddress, excepts)) {
+            return macAddress;
+        }
+        return "";
     }
 
     private static String getMacAddressByInetAddress() {
@@ -207,7 +207,7 @@ public final class DeviceUtils {
         return "02:00:00:00:00:00";
     }
 
-    @SuppressLint({"MissingPermission", "HardwareIds"})
+    @RequiresPermission(ACCESS_WIFI_STATE)
     private static String getMacAddressByWifiInfo() {
         try {
             final WifiManager wifi = (WifiManager) Utils.getApp()
@@ -215,6 +215,7 @@ public final class DeviceUtils {
             if (wifi != null) {
                 final WifiInfo info = wifi.getConnectionInfo();
                 if (info != null) {
+                    @SuppressLint("HardwareIds")
                     String macAddress = info.getMacAddress();
                     if (!TextUtils.isEmpty(macAddress)) {
                         return macAddress;
@@ -298,49 +299,6 @@ public final class DeviceUtils {
                 >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
-    private static String getMacAddressByNetworkInterface() {
-        try {
-            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni = nis.nextElement();
-                if (ni == null || !ni.getName().equalsIgnoreCase("wlan0")) continue;
-                byte[] macBytes = ni.getHardwareAddress();
-                if (macBytes != null && macBytes.length > 0) {
-                    StringBuilder sb = new StringBuilder();
-                    for (byte b : macBytes) {
-                        sb.append(String.format("%02x:", b));
-                    }
-                    return sb.substring(0, sb.length() - 1);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "02:00:00:00:00:00";
-    }
-
-    private static InetAddress getInetAddress() {
-        try {
-            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni = nis.nextElement();
-                // To prevent phone of xiaomi return "10.0.2.15"
-                if (!ni.isUp()) continue;
-                Enumeration<InetAddress> addresses = ni.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    InetAddress inetAddress = addresses.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        String hostAddress = inetAddress.getHostAddress();
-                        if (hostAddress.indexOf(':') < 0) return inetAddress;
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     /**
      * Return whether device is emulator.
      *
@@ -395,6 +353,49 @@ public final class DeviceUtils {
         ) > 0;
     }
 
+    private static String getMacAddressByNetworkInterface() {
+        try {
+            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+            while (nis.hasMoreElements()) {
+                NetworkInterface ni = nis.nextElement();
+                if (ni == null || !ni.getName().equalsIgnoreCase("wlan0")) continue;
+                byte[] macBytes = ni.getHardwareAddress();
+                if (macBytes != null && macBytes.length > 0) {
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : macBytes) {
+                        sb.append(String.format("%02x:", b));
+                    }
+                    return sb.substring(0, sb.length() - 1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "02:00:00:00:00:00";
+    }
+
+    private static InetAddress getInetAddress() {
+        try {
+            Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+            while (nis.hasMoreElements()) {
+                NetworkInterface ni = nis.nextElement();
+                // To prevent phone of xiaomi return "10.0.2.15"
+                if (!ni.isUp()) continue;
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress inetAddress = addresses.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        String hostAddress = inetAddress.getHostAddress();
+                        if (hostAddress.indexOf(':') < 0) return inetAddress;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * Return the unique device id.
      * <pre>{1}{UUID(macAddress)}</pre>
@@ -403,7 +404,6 @@ public final class DeviceUtils {
      *
      * @return the unique device id
      */
-    @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String getUniqueDeviceId() {
         return getUniqueDeviceId("", true);
     }
@@ -417,7 +417,6 @@ public final class DeviceUtils {
      * @param prefix The prefix of the unique device id.
      * @return the unique device id
      */
-    @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String getUniqueDeviceId(String prefix) {
         return getUniqueDeviceId(prefix, true);
     }
@@ -431,7 +430,6 @@ public final class DeviceUtils {
      * @param useCache True to use cache, false otherwise.
      * @return the unique device id
      */
-    @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String getUniqueDeviceId(boolean useCache) {
         return getUniqueDeviceId("", useCache);
     }
@@ -446,7 +444,6 @@ public final class DeviceUtils {
      * @param useCache True to use cache, false otherwise.
      * @return the unique device id
      */
-    @SuppressLint({"MissingPermission", "HardwareIds"})
     public static String getUniqueDeviceId(String prefix, boolean useCache) {
         if (!useCache) {
             return getUniqueDeviceIdReal(prefix);
@@ -477,7 +474,7 @@ public final class DeviceUtils {
         return saveUdid(prefix + 9, "");
     }
 
-    @SuppressLint({"MissingPermission", "HardwareIds"})
+    @RequiresPermission(allOf = {ACCESS_WIFI_STATE, INTERNET, CHANGE_WIFI_STATE})
     public static boolean isSameDevice(final String uniqueDeviceId) {
         // {prefix}{type}{32id}
         if (TextUtils.isEmpty(uniqueDeviceId) && uniqueDeviceId.length() < 33) return false;

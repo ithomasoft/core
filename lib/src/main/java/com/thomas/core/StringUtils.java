@@ -3,6 +3,7 @@ package com.thomas.core;
 import android.content.res.Resources;
 
 import androidx.annotation.ArrayRes;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
 import java.util.IllegalFormatException;
@@ -237,7 +238,7 @@ public final class StringUtils {
      * @param args The args.
      * @return a formatted string.
      */
-    public static String format(String str, Object... args) {
+    public static String format(@Nullable String str, Object... args) {
         String text = str;
         if (text != null) {
             if (args != null && args.length > 0) {

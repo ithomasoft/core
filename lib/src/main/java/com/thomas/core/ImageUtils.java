@@ -33,6 +33,7 @@ import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
@@ -43,6 +44,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -77,7 +79,7 @@ public final class ImageUtils {
      * @param quality The quality.
      * @return bytes
      */
-    public static byte[] bitmap2Bytes(final Bitmap bitmap, final CompressFormat format, int quality) {
+    public static byte[] bitmap2Bytes(@Nullable final Bitmap bitmap, @NonNull final CompressFormat format, int quality) {
         if (bitmap == null) return null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(format, quality, baos);
@@ -90,7 +92,7 @@ public final class ImageUtils {
      * @param bytes The bytes.
      * @return bitmap
      */
-    public static Bitmap bytes2Bitmap(final byte[] bytes) {
+    public static Bitmap bytes2Bitmap(@Nullable final byte[] bytes) {
         return (bytes == null || bytes.length == 0)
                 ? null
                 : BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
@@ -102,7 +104,8 @@ public final class ImageUtils {
      * @param drawable The drawable.
      * @return bitmap
      */
-    public static Bitmap drawable2Bitmap(final Drawable drawable) {
+    public static Bitmap drawable2Bitmap(@Nullable final Drawable drawable) {
+        if (drawable == null) return null;
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
             if (bitmapDrawable.getBitmap() != null) {
@@ -134,7 +137,7 @@ public final class ImageUtils {
      * @param bitmap The bitmap.
      * @return drawable
      */
-    public static Drawable bitmap2Drawable(final Bitmap bitmap) {
+    public static Drawable bitmap2Drawable(@Nullable final Bitmap bitmap) {
         return bitmap == null ? null : new BitmapDrawable(Utils.getApp().getResources(), bitmap);
     }
 
@@ -144,7 +147,7 @@ public final class ImageUtils {
      * @param drawable The drawable.
      * @return bytes
      */
-    public static byte[] drawable2Bytes(final Drawable drawable) {
+    public static byte[] drawable2Bytes(@Nullable final Drawable drawable) {
         return drawable == null ? null : bitmap2Bytes(drawable2Bitmap(drawable));
     }
 
@@ -332,7 +335,18 @@ public final class ImageUtils {
      * @return bitmap
      */
     public static Bitmap getBitmap(@DrawableRes final int resId) {
-        return BitmapFactory.decodeResource(Utils.getApp().getResources(), resId);
+        Drawable drawable = ContextCompat.getDrawable(Utils.getApp(), resId);
+        if (drawable == null) {
+            return null;
+        }
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(),
+                Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
     /**
@@ -1745,7 +1759,7 @@ public final class ImageUtils {
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format) {
-        return save2Album(src, format, 100, false);
+        return save2Album(src, "", format, 100, false);
     }
 
     /**
@@ -1758,7 +1772,7 @@ public final class ImageUtils {
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format,
                                   final boolean recycle) {
-        return save2Album(src, format, 100, recycle);
+        return save2Album(src, "", format, 100, recycle);
     }
 
     /**
@@ -1774,7 +1788,7 @@ public final class ImageUtils {
     public static File save2Album(final Bitmap src,
                                   final CompressFormat format,
                                   final int quality) {
-        return save2Album(src, format, quality, false);
+        return save2Album(src, "", format, quality, false);
     }
 
     /**
@@ -1792,6 +1806,73 @@ public final class ImageUtils {
                                   final CompressFormat format,
                                   final int quality,
                                   final boolean recycle) {
+        return save2Album(src, "", format, quality, recycle);
+    }
+
+    /**
+     * @param src     The source of bitmap.
+     * @param dirName The name of directory.
+     * @param format  The format of the image.
+     * @return the file if save success, otherwise return null.
+     */
+    @Nullable
+    public static File save2Album(final Bitmap src,
+                                  final String dirName,
+                                  final CompressFormat format) {
+        return save2Album(src, dirName, format, 100, false);
+    }
+
+    /**
+     * @param src     The source of bitmap.
+     * @param dirName The name of directory.
+     * @param format  The format of the image.
+     * @param recycle True to recycle the source of bitmap, false otherwise.
+     * @return the file if save success, otherwise return null.
+     */
+    @Nullable
+    public static File save2Album(final Bitmap src,
+                                  final String dirName,
+                                  final CompressFormat format,
+                                  final boolean recycle) {
+        return save2Album(src, dirName, format, 100, recycle);
+    }
+
+    /**
+     * @param src     The source of bitmap.
+     * @param dirName The name of directory.
+     * @param format  The format of the image.
+     * @param quality Hint to the compressor, 0-100. 0 meaning compress for
+     *                small size, 100 meaning compress for max quality. Some
+     *                formats, like PNG which is lossless, will ignore the
+     *                quality setting
+     * @return the file if save success, otherwise return null.
+     */
+    @Nullable
+    public static File save2Album(final Bitmap src,
+                                  final String dirName,
+                                  final CompressFormat format,
+                                  final int quality) {
+        return save2Album(src, dirName, format, quality, false);
+    }
+
+    /**
+     * @param src     The source of bitmap.
+     * @param dirName The name of directory.
+     * @param format  The format of the image.
+     * @param quality Hint to the compressor, 0-100. 0 meaning compress for
+     *                small size, 100 meaning compress for max quality. Some
+     *                formats, like PNG which is lossless, will ignore the
+     *                quality setting
+     * @param recycle True to recycle the source of bitmap, false otherwise.
+     * @return the file if save success, otherwise return null.
+     */
+    @Nullable
+    public static File save2Album(final Bitmap src,
+                                  final String dirName,
+                                  final CompressFormat format,
+                                  final int quality,
+                                  final boolean recycle) {
+        String safeDirName = TextUtils.isEmpty(dirName) ? Utils.getApp().getPackageName() : dirName;
         String suffix = CompressFormat.JPEG.equals(format) ? "JPG" : format.name();
         String fileName = System.currentTimeMillis() + "_" + quality + "." + suffix;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -1800,7 +1881,7 @@ public final class ImageUtils {
                 return null;
             }
             File picDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            File destFile = new File(picDir, Utils.getApp().getPackageName() + "/" + fileName);
+            File destFile = new File(picDir, safeDirName + "/" + fileName);
             if (!save(src, destFile, format, quality, recycle)) {
                 return null;
             }
@@ -1816,7 +1897,7 @@ public final class ImageUtils {
             } else {
                 contentUri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
             }
-            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/" + Utils.getApp().getPackageName());
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/" + safeDirName);
             contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri uri = Utils.getApp().getContentResolver().insert(contentUri, contentValues);
             if (uri == null) {

@@ -6,6 +6,7 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 
 import java.lang.reflect.InvocationTargetException;
@@ -44,14 +45,10 @@ public final class PhoneUtils {
         }
         TelephonyManager tm = getTelephonyManager();
         String deviceId = tm.getDeviceId();
-        if (!TextUtils.isEmpty(deviceId)) {
-            return deviceId;
-        }
+        if (!TextUtils.isEmpty(deviceId)) return deviceId;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String imei = tm.getImei();
-            if (!TextUtils.isEmpty(imei)) {
-                return imei;
-            }
+            if (!TextUtils.isEmpty(imei)) return imei;
             String meid = tm.getMeid();
             return TextUtils.isEmpty(meid) ? "" : meid;
         }
@@ -173,9 +170,7 @@ public final class PhoneUtils {
     private static String getMinOne(String s0, String s1) {
         boolean empty0 = TextUtils.isEmpty(s0);
         boolean empty1 = TextUtils.isEmpty(s1);
-        if (empty0 && empty1) {
-            return "";
-        }
+        if (empty0 && empty1) return "";
         if (!empty0 && !empty1) {
             if (s0.compareTo(s1) <= 0) {
                 return s0;
@@ -261,9 +256,7 @@ public final class PhoneUtils {
     public static String getSimOperatorByMnc() {
         TelephonyManager tm = getTelephonyManager();
         String operator = tm.getSimOperator();
-        if (operator == null) {
-            return "";
-        }
+        if (operator == null) return "";
         switch (operator) {
             case "46000":
             case "46002":
@@ -288,7 +281,7 @@ public final class PhoneUtils {
      *
      * @param phoneNumber The phone number.
      */
-    public static void dial(final String phoneNumber) {
+    public static void dial(@NonNull final String phoneNumber) {
         Utils.getApp().startActivity(UtilsBridge.getDialIntent(phoneNumber));
     }
 
@@ -299,7 +292,7 @@ public final class PhoneUtils {
      * @param phoneNumber The phone number.
      */
     @RequiresPermission(CALL_PHONE)
-    public static void call(final String phoneNumber) {
+    public static void call(@NonNull final String phoneNumber) {
         Utils.getApp().startActivity(UtilsBridge.getCallIntent(phoneNumber));
     }
 
@@ -309,7 +302,7 @@ public final class PhoneUtils {
      * @param phoneNumber The phone number.
      * @param content     The content.
      */
-    public static void sendSms(final String phoneNumber, final String content) {
+    public static void sendSms(@NonNull final String phoneNumber, final String content) {
         Utils.getApp().startActivity(UtilsBridge.getSendSmsIntent(phoneNumber, content));
     }
 

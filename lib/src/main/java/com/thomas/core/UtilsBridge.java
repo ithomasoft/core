@@ -2,6 +2,7 @@ package com.thomas.core;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -14,12 +15,13 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.annotation.StringRes;
+import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
-import com.thomas.core.constant.ThomasConstants;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -412,6 +414,14 @@ class UtilsBridge {
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    // NotificationUtils
+    ///////////////////////////////////////////////////////////////////////////
+    static Notification getNotification(NotificationUtils.ChannelConfig channelConfig,
+                                        Utils.Consumer<NotificationCompat.Builder> consumer) {
+        return NotificationUtils.getNotification(channelConfig, consumer);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     // PermissionUtils
     ///////////////////////////////////////////////////////////////////////////
     static boolean isGranted(final String... permissions) {
@@ -496,7 +506,7 @@ class UtilsBridge {
     // SpUtils
     ///////////////////////////////////////////////////////////////////////////
     static SPUtils getSpUtils4Utils() {
-        return SPUtils.getInstance(ThomasConstants.DEFAULT_SP_NAME);
+        return SPUtils.getInstance("Utils");
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -518,7 +528,7 @@ class UtilsBridge {
         return StringUtils.getString(id, formatArgs);
     }
 
-    static String format(String str, Object... args) {
+    static String format(@Nullable String str, Object... args) {
         return StringUtils.format(str, args);
     }
 
@@ -587,6 +597,10 @@ class UtilsBridge {
     ///////////////////////////////////////////////////////////////////////////
     static View layoutId2View(@LayoutRes final int layoutId) {
         return ViewUtils.layoutId2View(layoutId);
+    }
+
+    static boolean isLayoutRtl() {
+        return ViewUtils.isLayoutRtl();
     }
 
 

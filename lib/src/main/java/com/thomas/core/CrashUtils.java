@@ -1,7 +1,5 @@
 package com.thomas.core;
 
-import android.annotation.SuppressLint;
-
 import androidx.annotation.NonNull;
 
 import java.io.File;
@@ -22,7 +20,6 @@ public final class CrashUtils {
     /**
      * Initialization.
      */
-    @SuppressLint("MissingPermission")
     public static void init() {
         init("");
     }

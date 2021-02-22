@@ -29,7 +29,7 @@ public final class RomUtils {
     private static final String[] ROM_SAMSUNG = {"samsung"};
     private static final String[] ROM_MEIZU = {"meizu"};
     private static final String[] ROM_LENOVO = {"lenovo"};
-    private static final String[] ROM_SMARTISAN = {"smartisan"};
+    private static final String[] ROM_SMARTISAN = {"smartisan", "deltainno"};
     private static final String[] ROM_HTC = {"htc"};
     private static final String[] ROM_SONY = {"sony"};
     private static final String[] ROM_GIONEE = {"gionee", "amigo"};
@@ -374,13 +374,9 @@ public final class RomUtils {
 
     private static String getSystemProperty(final String name) {
         String prop = getSystemPropertyByShell(name);
-        if (!TextUtils.isEmpty(prop)) {
-            return prop;
-        }
+        if (!TextUtils.isEmpty(prop)) return prop;
         prop = getSystemPropertyByStream(name);
-        if (!TextUtils.isEmpty(prop)) {
-            return prop;
-        }
+        if (!TextUtils.isEmpty(prop)) return prop;
         if (Build.VERSION.SDK_INT < 28) {
             return getSystemPropertyByReflect(name);
         }

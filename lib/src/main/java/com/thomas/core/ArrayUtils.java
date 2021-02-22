@@ -1,5 +1,8 @@
 package com.thomas.core;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ArrayUtils {
-
     public static final int INDEX_NOT_FOUND = -1;
 
     private ArrayUtils() {
@@ -22,39 +24,47 @@ public class ArrayUtils {
      * @param array The array.
      * @return a new array only of those given elements.
      */
-    @SafeVarargs
+    @NonNull
     public static <T> T[] newArray(T... array) {
         return array;
     }
 
+    @NonNull
     public static long[] newLongArray(long... array) {
         return array;
     }
 
+    @NonNull
     public static int[] newIntArray(int... array) {
         return array;
     }
 
+    @NonNull
     public static short[] newShortArray(short... array) {
         return array;
     }
 
+    @NonNull
     public static char[] newCharArray(char... array) {
         return array;
     }
 
+    @NonNull
     public static byte[] newByteArray(byte... array) {
         return array;
     }
 
+    @NonNull
     public static double[] newDoubleArray(double... array) {
         return array;
     }
 
+    @NonNull
     public static float[] newFloatArray(float... array) {
         return array;
     }
 
+    @NonNull
     public static boolean[] newBooleanArray(boolean... array) {
         return array;
     }
@@ -65,7 +75,7 @@ public class ArrayUtils {
      * @param array The array.
      * @return {@code true}: yes<br>{@code false}: no
      */
-    public static boolean isEmpty(Object array) {
+    public static boolean isEmpty(@Nullable Object array) {
         return getLength(array) == 0;
     }
 
@@ -75,14 +85,12 @@ public class ArrayUtils {
      * @param array The array.
      * @return the size of array
      */
-    public static int getLength(Object array) {
-        if (array == null) {
-            return 0;
-        }
+    public static int getLength(@Nullable Object array) {
+        if (array == null) return 0;
         return Array.getLength(array);
     }
 
-    public static boolean isSameLength(Object array1, Object array2) {
+    public static boolean isSameLength(@Nullable Object array1, @Nullable Object array2) {
         return getLength(array1) == getLength(array2);
     }
 
@@ -93,7 +101,8 @@ public class ArrayUtils {
      * @param index The index into the array.
      * @return the value of the specified index of the array
      */
-    public static Object get(Object array, int index) {
+    @Nullable
+    public static Object get(@Nullable Object array, int index) {
         return get(array, index, null);
     }
 
@@ -105,10 +114,9 @@ public class ArrayUtils {
      * @param defaultValue The default value.
      * @return the value of the specified index of the array
      */
-    public static Object get(Object array, int index, Object defaultValue) {
-        if (array == null) {
-            return defaultValue;
-        }
+    @Nullable
+    public static Object get(@Nullable Object array, int index, @Nullable Object defaultValue) {
+        if (array == null) return defaultValue;
         try {
             return Array.get(array, index);
         } catch (Exception ignore) {
@@ -123,10 +131,8 @@ public class ArrayUtils {
      * @param index The index into the array.
      * @param value The new value of the indexed component.
      */
-    public static void set(Object array, int index, Object value) {
-        if (array == null) {
-            return;
-        }
+    public static void set(@Nullable Object array, int index, @Nullable Object value) {
+        if (array == null) return;
         Array.set(array, index, value);
     }
 
@@ -137,7 +143,7 @@ public class ArrayUtils {
      * @param a2 The other array.
      * @return {@code true}: yes<br>{@code false}: no
      */
-    public static boolean equals(Object[] a, Object[] a2) {
+    public static boolean equals(@Nullable Object[] a, @Nullable Object[] a2) {
         return Arrays.deepEquals(a, a2);
     }
 
@@ -342,71 +348,63 @@ public class ArrayUtils {
      * @param array the array to shallow clone, may be <code>null</code>
      * @return the cloned array, <code>null</code> if <code>null</code> input
      */
-    public static <T> T[] copy(T[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static long[] copy(long[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static int[] copy(int[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static short[] copy(short[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static char[] copy(char[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static byte[] copy(byte[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static double[] copy(double[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static float[] copy(float[] array) {
-        if (array == null) {
-            return null;
-        }
-        return subArray(array, 0, array.length);
-    }
-
-    public static boolean[] copy(boolean[] array) {
+    @Nullable
+    public static <T> T[] copy(@Nullable T[] array) {
         if (array == null) return null;
         return subArray(array, 0, array.length);
     }
 
-    private static Object realCopy(Object array) {
-        if (array == null) {
-            return null;
-        }
+    @Nullable
+    public static long[] copy(@Nullable long[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static int[] copy(@Nullable int[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static short[] copy(@Nullable short[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static char[] copy(@Nullable char[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static byte[] copy(@Nullable byte[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static double[] copy(@Nullable double[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static float[] copy(@Nullable float[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    public static boolean[] copy(@Nullable boolean[] array) {
+        if (array == null) return null;
+        return subArray(array, 0, array.length);
+    }
+
+    @Nullable
+    private static Object realCopy(@Nullable Object array) {
+        if (array == null) return null;
         return realSubArray(array, 0, getLength(array));
     }
 
@@ -414,44 +412,54 @@ public class ArrayUtils {
     // subArray
     ///////////////////////////////////////////////////////////////////////////
 
-    public static <T> T[] subArray(T[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static <T> T[] subArray(@Nullable T[] array, int startIndexInclusive, int endIndexExclusive) {
         //noinspection unchecked
         return (T[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static long[] subArray(long[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static long[] subArray(@Nullable long[] array, int startIndexInclusive, int endIndexExclusive) {
         return (long[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static int[] subArray(int[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static int[] subArray(@Nullable int[] array, int startIndexInclusive, int endIndexExclusive) {
         return (int[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static short[] subArray(short[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static short[] subArray(@Nullable short[] array, int startIndexInclusive, int endIndexExclusive) {
         return (short[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static char[] subArray(char[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static char[] subArray(@Nullable char[] array, int startIndexInclusive, int endIndexExclusive) {
         return (char[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static byte[] subArray(byte[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static byte[] subArray(@Nullable byte[] array, int startIndexInclusive, int endIndexExclusive) {
         return (byte[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static double[] subArray(double[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static double[] subArray(@Nullable double[] array, int startIndexInclusive, int endIndexExclusive) {
         return (double[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static float[] subArray(float[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static float[] subArray(@Nullable float[] array, int startIndexInclusive, int endIndexExclusive) {
         return (float[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    public static boolean[] subArray(boolean[] array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    public static boolean[] subArray(@Nullable boolean[] array, int startIndexInclusive, int endIndexExclusive) {
         return (boolean[]) realSubArray(array, startIndexInclusive, endIndexExclusive);
     }
 
-    private static Object realSubArray(Object array, int startIndexInclusive, int endIndexExclusive) {
+    @Nullable
+    private static Object realSubArray(@Nullable Object array, int startIndexInclusive, int endIndexExclusive) {
         if (array == null) {
             return null;
         }
@@ -498,44 +506,54 @@ public class ArrayUtils {
      * @param element the object to realAdd
      * @return A new array containing the existing elements plus the new element
      */
-    public static <T> T[] add(T[] array, T element) {
+    @NonNull
+    public static <T> T[] add(@Nullable T[] array, @Nullable T element) {
         Class type = array != null ? array.getClass() : (element != null ? element.getClass() : Object.class);
         return (T[]) realAddOne(array, element, type);
     }
 
-    public static boolean[] add(boolean[] array, boolean element) {
+    @NonNull
+    public static boolean[] add(@Nullable boolean[] array, boolean element) {
         return (boolean[]) realAddOne(array, element, Boolean.TYPE);
     }
 
-    public static byte[] add(byte[] array, byte element) {
+    @NonNull
+    public static byte[] add(@Nullable byte[] array, byte element) {
         return (byte[]) realAddOne(array, element, Byte.TYPE);
     }
 
-    public static char[] add(char[] array, char element) {
+    @NonNull
+    public static char[] add(@Nullable char[] array, char element) {
         return (char[]) realAddOne(array, element, Character.TYPE);
     }
 
-    public static double[] add(double[] array, double element) {
+    @NonNull
+    public static double[] add(@Nullable double[] array, double element) {
         return (double[]) realAddOne(array, element, Double.TYPE);
     }
 
-    public static float[] add(float[] array, float element) {
+    @NonNull
+    public static float[] add(@Nullable float[] array, float element) {
         return (float[]) realAddOne(array, element, Float.TYPE);
     }
 
-    public static int[] add(int[] array, int element) {
+    @NonNull
+    public static int[] add(@Nullable int[] array, int element) {
         return (int[]) realAddOne(array, element, Integer.TYPE);
     }
 
-    public static long[] add(long[] array, long element) {
+    @NonNull
+    public static long[] add(@Nullable long[] array, long element) {
         return (long[]) realAddOne(array, element, Long.TYPE);
     }
 
-    public static short[] add(short[] array, short element) {
+    @NonNull
+    public static short[] add(@Nullable short[] array, short element) {
         return (short[]) realAddOne(array, element, Short.TYPE);
     }
 
-    private static Object realAddOne(Object array, Object element, Class newArrayComponentType) {
+    @NonNull
+    private static Object realAddOne(@Nullable Object array, @Nullable Object element, Class newArrayComponentType) {
         Object newArray;
         int arrayLength = 0;
         if (array != null) {
@@ -569,46 +587,53 @@ public class ArrayUtils {
      * @return The new array, <code>null</code> if <code>null</code> array inputs.
      * The type of the new array is the type of the first array.
      */
-    public static <T> T[] add(T[] array1, T[] array2) {
+    @Nullable
+    public static <T> T[] add(@Nullable T[] array1, @Nullable T[] array2) {
         return (T[]) realAddArr(array1, array2);
     }
 
-    public static boolean[] add(boolean[] array1, boolean[] array2) {
+    @Nullable
+    public static boolean[] add(@Nullable boolean[] array1, @Nullable boolean[] array2) {
         return (boolean[]) realAddArr(array1, array2);
     }
 
-    public static char[] add(char[] array1, char[] array2) {
+    @Nullable
+    public static char[] add(@Nullable char[] array1, @Nullable char[] array2) {
         return (char[]) realAddArr(array1, array2);
     }
 
-    public static byte[] add(byte[] array1, byte[] array2) {
+    @Nullable
+    public static byte[] add(@Nullable byte[] array1, @Nullable byte[] array2) {
         return (byte[]) realAddArr(array1, array2);
     }
 
-    public static short[] add(short[] array1, short[] array2) {
+    @Nullable
+    public static short[] add(@Nullable short[] array1, @Nullable short[] array2) {
         return (short[]) realAddArr(array1, array2);
     }
 
-    public static int[] add(int[] array1, int[] array2) {
+    @Nullable
+    public static int[] add(@Nullable int[] array1, @Nullable int[] array2) {
         return (int[]) realAddArr(array1, array2);
     }
 
-    public static long[] add(long[] array1, long[] array2) {
+    @Nullable
+    public static long[] add(@Nullable long[] array1, @Nullable long[] array2) {
         return (long[]) realAddArr(array1, array2);
     }
 
-    public static float[] add(float[] array1, float[] array2) {
+    @Nullable
+    public static float[] add(@Nullable float[] array1, @Nullable float[] array2) {
         return (float[]) realAddArr(array1, array2);
     }
 
-    public static double[] add(double[] array1, double[] array2) {
+    @Nullable
+    public static double[] add(@Nullable double[] array1, @Nullable double[] array2) {
         return (double[]) realAddArr(array1, array2);
     }
 
-    private static Object realAddArr(Object array1, Object array2) {
-        if (array1 == null && array2 == null) {
-            return null;
-        }
+    private static Object realAddArr(@Nullable Object array1, @Nullable Object array2) {
+        if (array1 == null && array2 == null) return null;
         if (array1 == null) {
             return realCopy(array2);
         }
@@ -637,11 +662,11 @@ public class ArrayUtils {
      * whose component type is the same as the element.</p>
      *
      * <pre>
-     * ArrayUtils.add(null, 0, null)      = [null]
-     * ArrayUtils.add(null, 0, "a")       = ["a"]
-     * ArrayUtils.add(["a"], 1, null)     = ["a", null]
-     * ArrayUtils.add(["a"], 1, "b")      = ["a", "b"]
-     * ArrayUtils.add(["a", "b"], 3, "c") = ["a", "b", "c"]
+     * ArrayUtils.add(null, 0, null)        = null
+     * ArrayUtils.add(null, 0, ["a"])       = ["a"]
+     * ArrayUtils.add(["a"], 1, null)       = ["a"]
+     * ArrayUtils.add(["a"], 1, ["b"])      = ["a", "b"]
+     * ArrayUtils.add(["a", "b"], 2, ["c"]) = ["a", "b", "c"]
      * </pre>
      *
      * @param array1 the array to realAdd the element to, may be <code>null</code>
@@ -651,54 +676,77 @@ public class ArrayUtils {
      * @throws IndexOutOfBoundsException if the index is out of range
      *                                   (index < 0 || index > array.length).
      */
-    public static <T> T[] add(T[] array1, int index, T[] array2) {
+    @Nullable
+    public static <T> T[] add(@Nullable T[] array1, int index, @Nullable T[] array2) {
         Class clss;
         if (array1 != null) {
             clss = array1.getClass().getComponentType();
         } else if (array2 != null) {
             clss = array2.getClass().getComponentType();
         } else {
-            return (T[]) new Object[]{null};
+            return null;
         }
         return (T[]) realAddArr(array1, index, array2, clss);
     }
 
-    public static boolean[] add(boolean[] array1, int index, boolean[] array2) {
-        return (boolean[]) realAddArr(array1, index, array2, Boolean.TYPE);
+    @Nullable
+    public static boolean[] add(@Nullable boolean[] array1, int index, @Nullable boolean[] array2) {
+        Object result = realAddArr(array1, index, array2, Boolean.TYPE);
+        if (result == null) return null;
+        return (boolean[]) result;
     }
 
-    public static char[] add(char[] array1, int index, char[] array2) {
-        return (char[]) realAddArr(array1, index, array2, Character.TYPE);
+    public static char[] add(@Nullable char[] array1, int index, @Nullable char[] array2) {
+        Object result = realAddArr(array1, index, array2, Character.TYPE);
+        if (result == null) return null;
+        return (char[]) result;
     }
 
-    public static byte[] add(byte[] array1, int index, byte[] array2) {
-        return (byte[]) realAddArr(array1, index, array2, Byte.TYPE);
+    @Nullable
+    public static byte[] add(@Nullable byte[] array1, int index, @Nullable byte[] array2) {
+        Object result = realAddArr(array1, index, array2, Byte.TYPE);
+        if (result == null) return null;
+        return (byte[]) result;
     }
 
-    public static short[] add(short[] array1, int index, short[] array2) {
-        return (short[]) realAddArr(array1, index, array2, Short.TYPE);
+    @Nullable
+    public static short[] add(@Nullable short[] array1, int index, @Nullable short[] array2) {
+        Object result = realAddArr(array1, index, array2, Short.TYPE);
+        if (result == null) return null;
+        return (short[]) result;
     }
 
-    public static int[] add(int[] array1, int index, int[] array2) {
-        return (int[]) realAddArr(array1, index, array2, Integer.TYPE);
+    @Nullable
+    public static int[] add(@Nullable int[] array1, int index, @Nullable int[] array2) {
+        Object result = realAddArr(array1, index, array2, Integer.TYPE);
+        if (result == null) return null;
+        return (int[]) result;
     }
 
-    public static long[] add(long[] array1, int index, long[] array2) {
-        return (long[]) realAddArr(array1, index, array2, Long.TYPE);
+    @Nullable
+    public static long[] add(@Nullable long[] array1, int index, @Nullable long[] array2) {
+        Object result = realAddArr(array1, index, array2, Long.TYPE);
+        if (result == null) return null;
+        return (long[]) result;
     }
 
-    public static float[] add(float[] array1, int index, float[] array2) {
-        return (float[]) realAddArr(array1, index, array2, Float.TYPE);
+    @Nullable
+    public static float[] add(@Nullable float[] array1, int index, @Nullable float[] array2) {
+        Object result = realAddArr(array1, index, array2, Float.TYPE);
+        if (result == null) return null;
+        return (float[]) result;
     }
 
-    public static double[] add(double[] array1, int index, double[] array2) {
-        return (double[]) realAddArr(array1, index, array2, Double.TYPE);
+    @Nullable
+    public static double[] add(@Nullable double[] array1, int index, @Nullable double[] array2) {
+        Object result = realAddArr(array1, index, array2, Double.TYPE);
+        if (result == null) return null;
+        return (double[]) result;
     }
 
-    private static Object realAddArr(Object array1, int index, Object array2, Class clss) {
-        if (array1 == null && array2 == null) {
-            return null;
-        }
+    @Nullable
+    private static Object realAddArr(@Nullable Object array1, int index, @Nullable Object array2, Class clss) {
+        if (array1 == null && array2 == null) return null;
         int len1 = getLength(array1);
         int len2 = getLength(array2);
         if (len1 == 0) {
@@ -756,7 +804,8 @@ public class ArrayUtils {
      * @throws IndexOutOfBoundsException if the index is out of range
      *                                   (index < 0 || index > array.length).
      */
-    public static <T> T[] add(T[] array, int index, T element) {
+    @NonNull
+    public static <T> T[] add(@Nullable T[] array, int index, @Nullable T element) {
         Class clss;
         if (array != null) {
             clss = array.getClass().getComponentType();
@@ -768,39 +817,48 @@ public class ArrayUtils {
         return (T[]) realAdd(array, index, element, clss);
     }
 
-    public static boolean[] add(boolean[] array, int index, boolean element) {
+    @NonNull
+    public static boolean[] add(@Nullable boolean[] array, int index, boolean element) {
         return (boolean[]) realAdd(array, index, element, Boolean.TYPE);
     }
 
-    public static char[] add(char[] array, int index, char element) {
+    @NonNull
+    public static char[] add(@Nullable char[] array, int index, char element) {
         return (char[]) realAdd(array, index, element, Character.TYPE);
     }
 
-    public static byte[] add(byte[] array, int index, byte element) {
+    @NonNull
+    public static byte[] add(@Nullable byte[] array, int index, byte element) {
         return (byte[]) realAdd(array, index, element, Byte.TYPE);
     }
 
-    public static short[] add(short[] array, int index, short element) {
+    @NonNull
+    public static short[] add(@Nullable short[] array, int index, short element) {
         return (short[]) realAdd(array, index, element, Short.TYPE);
     }
 
-    public static int[] add(int[] array, int index, int element) {
+    @NonNull
+    public static int[] add(@Nullable int[] array, int index, int element) {
         return (int[]) realAdd(array, index, element, Integer.TYPE);
     }
 
-    public static long[] add(long[] array, int index, long element) {
+    @NonNull
+    public static long[] add(@Nullable long[] array, int index, long element) {
         return (long[]) realAdd(array, index, element, Long.TYPE);
     }
 
-    public static float[] add(float[] array, int index, float element) {
+    @NonNull
+    public static float[] add(@Nullable float[] array, int index, float element) {
         return (float[]) realAdd(array, index, element, Float.TYPE);
     }
 
-    public static double[] add(double[] array, int index, double element) {
+    @NonNull
+    public static double[] add(@Nullable double[] array, int index, double element) {
         return (double[]) realAdd(array, index, element, Double.TYPE);
     }
 
-    private static Object realAdd(Object array, int index, Object element, Class clss) {
+    @NonNull
+    private static Object realAdd(@Nullable Object array, int index, @Nullable Object element, Class clss) {
         if (array == null) {
             if (index != 0) {
                 throw new IndexOutOfBoundsException("Index: " + index + ", Length: 0");
@@ -846,15 +904,16 @@ public class ArrayUtils {
      * ArrayUtils.remove(["a", "b", "c"], 1) = ["a", "c"]
      * </pre>
      *
-     * @param array the array to remove the element from, may not be <code>null</code>
+     * @param array the array to remove the element from, may be <code>null</code>
      * @param index the position of the element to be removed
      * @return A new array containing the existing elements except the element
      * at the specified position.
      * @throws IndexOutOfBoundsException if the index is out of range
-     *                                   (index < 0 || index >= array.length), or if the array is <code>null</code>.
-     * @since 2.1
+     *                                   (index < 0 || index >= array.length)
      */
-    public static Object[] remove(Object[] array, int index) {
+    @Nullable
+    public static Object[] remove(@Nullable Object[] array, int index) {
+        if (array == null) return null;
         return (Object[]) remove((Object) array, index);
     }
 
@@ -881,9 +940,9 @@ public class ArrayUtils {
      * @param element the element to be removed
      * @return A new array containing the existing elements except the first
      * occurrence of the specified element.
-     * @since 2.1
      */
-    public static Object[] removeElement(Object[] array, Object element) {
+    @Nullable
+    public static Object[] removeElement(@Nullable Object[] array, @Nullable Object element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -891,11 +950,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static boolean[] remove(boolean[] array, int index) {
+    @Nullable
+    public static boolean[] remove(@Nullable boolean[] array, int index) {
+        if (array == null) return null;
         return (boolean[]) remove((Object) array, index);
     }
 
-    public static boolean[] removeElement(boolean[] array, boolean element) {
+    @Nullable
+    public static boolean[] removeElement(@Nullable boolean[] array, boolean element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -903,11 +965,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static byte[] remove(byte[] array, int index) {
+    @Nullable
+    public static byte[] remove(@Nullable byte[] array, int index) {
+        if (array == null) return null;
         return (byte[]) remove((Object) array, index);
     }
 
-    public static byte[] removeElement(byte[] array, byte element) {
+    @Nullable
+    public static byte[] removeElement(@Nullable byte[] array, byte element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -915,11 +980,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static char[] remove(char[] array, int index) {
+    @Nullable
+    public static char[] remove(@Nullable char[] array, int index) {
+        if (array == null) return null;
         return (char[]) remove((Object) array, index);
     }
 
-    public static char[] removeElement(char[] array, char element) {
+    @Nullable
+    public static char[] removeElement(@Nullable char[] array, char element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -927,23 +995,30 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static double[] remove(double[] array, int index) {
+    @Nullable
+    public static double[] remove(@Nullable double[] array, int index) {
+        if (array == null) return null;
         return (double[]) remove((Object) array, index);
     }
 
-    public static double[] removeElement(double[] array, double element) {
+    @Nullable
+    public static double[] removeElement(@Nullable double[] array, double element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
         }
+        //noinspection ConstantConditions
         return remove(array, index);
     }
 
-    public static float[] remove(float[] array, int index) {
+    @Nullable
+    public static float[] remove(@Nullable float[] array, int index) {
+        if (array == null) return null;
         return (float[]) remove((Object) array, index);
     }
 
-    public static float[] removeElement(float[] array, float element) {
+    @Nullable
+    public static float[] removeElement(@Nullable float[] array, float element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -951,11 +1026,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static int[] remove(int[] array, int index) {
+    @Nullable
+    public static int[] remove(@Nullable int[] array, int index) {
+        if (array == null) return null;
         return (int[]) remove((Object) array, index);
     }
 
-    public static int[] removeElement(int[] array, int element) {
+    @Nullable
+    public static int[] removeElement(@Nullable int[] array, int element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -963,11 +1041,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static long[] remove(long[] array, int index) {
+    @Nullable
+    public static long[] remove(@Nullable long[] array, int index) {
+        if (array == null) return null;
         return (long[]) remove((Object) array, index);
     }
 
-    public static long[] removeElement(long[] array, long element) {
+    @Nullable
+    public static long[] removeElement(@Nullable long[] array, long element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -975,11 +1056,14 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    public static short[] remove(short[] array, int index) {
+    @Nullable
+    public static short[] remove(@Nullable short[] array, int index) {
+        if (array == null) return null;
         return (short[]) remove((Object) array, index);
     }
 
-    public static short[] removeElement(short[] array, short element) {
+    @Nullable
+    public static short[] removeElement(@Nullable short[] array, short element) {
         int index = indexOf(array, element);
         if (index == INDEX_NOT_FOUND) {
             return copy(array);
@@ -987,7 +1071,8 @@ public class ArrayUtils {
         return remove(array, index);
     }
 
-    private static Object remove(Object array, int index) {
+    @NonNull
+    private static Object remove(@NonNull Object array, int index) {
         int length = getLength(array);
         if (index < 0 || index >= length) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
@@ -1006,11 +1091,11 @@ public class ArrayUtils {
     // object indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(Object[] array, Object objectToFind) {
+    public static int indexOf(@Nullable Object[] array, @Nullable Object objectToFind) {
         return indexOf(array, objectToFind, 0);
     }
 
-    public static int indexOf(Object[] array, final Object objectToFind, int startIndex) {
+    public static int indexOf(@Nullable Object[] array, @Nullable final Object objectToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1033,11 +1118,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(Object[] array, Object objectToFind) {
+    public static int lastIndexOf(@Nullable Object[] array, @Nullable Object objectToFind) {
         return lastIndexOf(array, objectToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(Object[] array, Object objectToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable Object[] array, @Nullable Object objectToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1062,7 +1147,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(Object[] array, Object objectToFind) {
+    public static boolean contains(@Nullable Object[] array, @Nullable Object objectToFind) {
         return indexOf(array, objectToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1070,11 +1155,11 @@ public class ArrayUtils {
     // long indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(long[] array, long valueToFind) {
+    public static int indexOf(@Nullable long[] array, long valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(long[] array, long valueToFind, int startIndex) {
+    public static int indexOf(@Nullable long[] array, long valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1089,11 +1174,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(long[] array, long valueToFind) {
+    public static int lastIndexOf(@Nullable long[] array, long valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(long[] array, long valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable long[] array, long valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1110,7 +1195,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(long[] array, long valueToFind) {
+    public static boolean contains(@Nullable long[] array, long valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1118,11 +1203,11 @@ public class ArrayUtils {
     // int indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(int[] array, int valueToFind) {
+    public static int indexOf(@Nullable int[] array, int valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(int[] array, int valueToFind, int startIndex) {
+    public static int indexOf(@Nullable int[] array, int valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1137,11 +1222,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(int[] array, int valueToFind) {
+    public static int lastIndexOf(@Nullable int[] array, int valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(int[] array, int valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable int[] array, int valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1158,7 +1243,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(int[] array, int valueToFind) {
+    public static boolean contains(@Nullable int[] array, int valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1166,11 +1251,11 @@ public class ArrayUtils {
     // short indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(short[] array, short valueToFind) {
+    public static int indexOf(@Nullable short[] array, short valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(short[] array, short valueToFind, int startIndex) {
+    public static int indexOf(@Nullable short[] array, short valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1185,11 +1270,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(short[] array, short valueToFind) {
+    public static int lastIndexOf(@Nullable short[] array, short valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(short[] array, short valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable short[] array, short valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1206,7 +1291,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(short[] array, short valueToFind) {
+    public static boolean contains(@Nullable short[] array, short valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1214,11 +1299,11 @@ public class ArrayUtils {
     // char indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(char[] array, char valueToFind) {
+    public static int indexOf(@Nullable char[] array, char valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(char[] array, char valueToFind, int startIndex) {
+    public static int indexOf(@Nullable char[] array, char valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1233,11 +1318,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(char[] array, char valueToFind) {
+    public static int lastIndexOf(@Nullable char[] array, char valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(char[] array, char valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable char[] array, char valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1254,7 +1339,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(char[] array, char valueToFind) {
+    public static boolean contains(@Nullable char[] array, char valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1262,11 +1347,11 @@ public class ArrayUtils {
     // byte indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(byte[] array, byte valueToFind) {
+    public static int indexOf(@Nullable byte[] array, byte valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(byte[] array, byte valueToFind, int startIndex) {
+    public static int indexOf(@Nullable byte[] array, byte valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1281,11 +1366,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(byte[] array, byte valueToFind) {
+    public static int lastIndexOf(@Nullable byte[] array, byte valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(byte[] array, byte valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable byte[] array, byte valueToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
         }
@@ -1302,7 +1387,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(byte[] array, byte valueToFind) {
+    public static boolean contains(@Nullable byte[] array, byte valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1310,15 +1395,15 @@ public class ArrayUtils {
     // double indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(double[] array, double valueToFind) {
+    public static int indexOf(@Nullable double[] array, double valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(double[] array, double valueToFind, double tolerance) {
+    public static int indexOf(@Nullable double[] array, double valueToFind, double tolerance) {
         return indexOf(array, valueToFind, 0, tolerance);
     }
 
-    public static int indexOf(double[] array, double valueToFind, int startIndex) {
+    public static int indexOf(@Nullable double[] array, double valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1333,7 +1418,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int indexOf(double[] array, double valueToFind, int startIndex, double tolerance) {
+    public static int indexOf(@Nullable double[] array, double valueToFind, int startIndex, double tolerance) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1350,15 +1435,15 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(double[] array, double valueToFind) {
+    public static int lastIndexOf(@Nullable double[] array, double valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(double[] array, double valueToFind, double tolerance) {
+    public static int lastIndexOf(@Nullable double[] array, double valueToFind, double tolerance) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE, tolerance);
     }
 
-    public static int lastIndexOf(double[] array, double valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable double[] array, double valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1375,7 +1460,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(double[] array, double valueToFind, int startIndex, double tolerance) {
+    public static int lastIndexOf(@Nullable double[] array, double valueToFind, int startIndex, double tolerance) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1394,11 +1479,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(double[] array, double valueToFind) {
+    public static boolean contains(@Nullable double[] array, double valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(double[] array, double valueToFind, double tolerance) {
+    public static boolean contains(@Nullable double[] array, double valueToFind, double tolerance) {
         return indexOf(array, valueToFind, 0, tolerance) != INDEX_NOT_FOUND;
     }
 
@@ -1406,11 +1491,11 @@ public class ArrayUtils {
     // float indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(float[] array, float valueToFind) {
+    public static int indexOf(@Nullable float[] array, float valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(float[] array, float valueToFind, int startIndex) {
+    public static int indexOf(@Nullable float[] array, float valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1425,11 +1510,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(float[] array, float valueToFind) {
+    public static int lastIndexOf(@Nullable float[] array, float valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(float[] array, float valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable float[] array, float valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1446,7 +1531,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(float[] array, float valueToFind) {
+    public static boolean contains(@Nullable float[] array, float valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1454,11 +1539,11 @@ public class ArrayUtils {
     // bool indexOf
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int indexOf(boolean[] array, boolean valueToFind) {
+    public static int indexOf(@Nullable boolean[] array, boolean valueToFind) {
         return indexOf(array, valueToFind, 0);
     }
 
-    public static int indexOf(boolean[] array, boolean valueToFind, int startIndex) {
+    public static int indexOf(@Nullable boolean[] array, boolean valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1473,11 +1558,11 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static int lastIndexOf(boolean[] array, boolean valueToFind) {
+    public static int lastIndexOf(@Nullable boolean[] array, boolean valueToFind) {
         return lastIndexOf(array, valueToFind, Integer.MAX_VALUE);
     }
 
-    public static int lastIndexOf(boolean[] array, boolean valueToFind, int startIndex) {
+    public static int lastIndexOf(@Nullable boolean[] array, boolean valueToFind, int startIndex) {
         if (ArrayUtils.isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
@@ -1494,7 +1579,7 @@ public class ArrayUtils {
         return INDEX_NOT_FOUND;
     }
 
-    public static boolean contains(boolean[] array, boolean valueToFind) {
+    public static boolean contains(@Nullable boolean[] array, boolean valueToFind) {
         return indexOf(array, valueToFind) != INDEX_NOT_FOUND;
     }
 
@@ -1502,7 +1587,8 @@ public class ArrayUtils {
     // char converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static char[] toPrimitive(Character[] array) {
+    @Nullable
+    public static char[] toPrimitive(@Nullable Character[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1515,7 +1601,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static char[] toPrimitive(Character[] array, char valueForNull) {
+    @Nullable
+    public static char[] toPrimitive(@Nullable Character[] array, char valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1529,7 +1616,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Character[] toObject(char[] array) {
+    @Nullable
+    public static Character[] toObject(@Nullable char[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1546,7 +1634,8 @@ public class ArrayUtils {
     // long converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static long[] toPrimitive(Long[] array) {
+    @Nullable
+    public static long[] toPrimitive(@Nullable Long[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1559,7 +1648,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static long[] toPrimitive(Long[] array, long valueForNull) {
+    @Nullable
+    public static long[] toPrimitive(@Nullable Long[] array, long valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1573,7 +1663,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Long[] toObject(long[] array) {
+    @Nullable
+    public static Long[] toObject(@Nullable long[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1590,7 +1681,8 @@ public class ArrayUtils {
     // int converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static int[] toPrimitive(Integer[] array) {
+    @Nullable
+    public static int[] toPrimitive(@Nullable Integer[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1603,7 +1695,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static int[] toPrimitive(Integer[] array, int valueForNull) {
+    @Nullable
+    public static int[] toPrimitive(@Nullable Integer[] array, int valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1617,7 +1710,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Integer[] toObject(int[] array) {
+    @Nullable
+    public static Integer[] toObject(@Nullable int[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1634,7 +1728,8 @@ public class ArrayUtils {
     // short converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static short[] toPrimitive(Short[] array) {
+    @Nullable
+    public static short[] toPrimitive(@Nullable Short[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1647,7 +1742,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static short[] toPrimitive(Short[] array, short valueForNull) {
+    @Nullable
+    public static short[] toPrimitive(@Nullable Short[] array, short valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1661,7 +1757,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Short[] toObject(short[] array) {
+    @Nullable
+    public static Short[] toObject(@Nullable short[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1678,7 +1775,8 @@ public class ArrayUtils {
     // byte converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static byte[] toPrimitive(Byte[] array) {
+    @Nullable
+    public static byte[] toPrimitive(@Nullable Byte[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1691,7 +1789,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static byte[] toPrimitive(Byte[] array, byte valueForNull) {
+    @Nullable
+    public static byte[] toPrimitive(@Nullable Byte[] array, byte valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1705,7 +1804,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Byte[] toObject(byte[] array) {
+    @Nullable
+    public static Byte[] toObject(@Nullable byte[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1722,7 +1822,8 @@ public class ArrayUtils {
     // double converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static double[] toPrimitive(Double[] array) {
+    @Nullable
+    public static double[] toPrimitive(@Nullable Double[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1735,7 +1836,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static double[] toPrimitive(Double[] array, double valueForNull) {
+    @Nullable
+    public static double[] toPrimitive(@Nullable Double[] array, double valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1749,7 +1851,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Double[] toObject(double[] array) {
+    @Nullable
+    public static Double[] toObject(@Nullable double[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1766,7 +1869,8 @@ public class ArrayUtils {
     // float converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static float[] toPrimitive(Float[] array) {
+    @Nullable
+    public static float[] toPrimitive(@Nullable Float[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1779,7 +1883,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static float[] toPrimitive(Float[] array, float valueForNull) {
+    @Nullable
+    public static float[] toPrimitive(@Nullable Float[] array, float valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1793,7 +1898,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Float[] toObject(float[] array) {
+    @Nullable
+    public static Float[] toObject(@Nullable float[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1810,7 +1916,8 @@ public class ArrayUtils {
     // boolean converters
     ///////////////////////////////////////////////////////////////////////////
 
-    public static boolean[] toPrimitive(Boolean[] array) {
+    @Nullable
+    public static boolean[] toPrimitive(@Nullable Boolean[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1823,7 +1930,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static boolean[] toPrimitive(Boolean[] array, boolean valueForNull) {
+    @Nullable
+    public static boolean[] toPrimitive(@Nullable Boolean[] array, boolean valueForNull) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1837,7 +1945,8 @@ public class ArrayUtils {
         return result;
     }
 
-    public static Boolean[] toObject(boolean[] array) {
+    @Nullable
+    public static Boolean[] toObject(@Nullable boolean[] array) {
         if (array == null) {
             return null;
         } else if (array.length == 0) {
@@ -1850,88 +1959,72 @@ public class ArrayUtils {
         return result;
     }
 
-    public static <T> List<T> asList(T... array) {
+    @NonNull
+    public static <T> List<T> asList(@Nullable T... array) {
         if (array == null || array.length == 0) {
             return Collections.emptyList();
         }
         return Arrays.asList(array);
     }
 
-    public static <T> List<T> asUnmodifiableList(T... array) {
+    @NonNull
+    public static <T> List<T> asUnmodifiableList(@Nullable T... array) {
         return Collections.unmodifiableList(asList(array));
     }
 
-    public static <T> List<T> asArrayList(T... array) {
+    @NonNull
+    public static <T> List<T> asArrayList(@Nullable T... array) {
         List<T> list = new ArrayList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         list.addAll(Arrays.asList(array));
         return list;
     }
 
-    public static <T> List<T> asLinkedList(T... array) {
+    @NonNull
+    public static <T> List<T> asLinkedList(@Nullable T... array) {
         List<T> list = new LinkedList<>();
-        if (array == null || array.length == 0) {
-            return list;
-        }
+        if (array == null || array.length == 0) return list;
         list.addAll(Arrays.asList(array));
         return list;
     }
 
-    public static <T> void sort(T[] array, Comparator<? super T> c) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static <T> void sort(@Nullable T[] array, Comparator<? super T> c) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array, c);
     }
 
-    public static void sort(byte[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable byte[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(char[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable char[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(double[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable double[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(float[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable float[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(int[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable int[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(long[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable long[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
-    public static void sort(short[] array) {
-        if (array == null || array.length < 2) {
-            return;
-        }
+    public static void sort(@Nullable short[] array) {
+        if (array == null || array.length < 2) return;
         Arrays.sort(array);
     }
 
@@ -1943,10 +2036,8 @@ public class ArrayUtils {
      * @param array   The array.
      * @param closure the closure to perform, may be null
      */
-    public static <E> void forAllDo(Object array, Closure<E> closure) {
-        if (array == null || closure == null) {
-            return;
-        }
+    public static <E> void forAllDo(@Nullable Object array, @Nullable Closure<E> closure) {
+        if (array == null || closure == null) return;
         if (array instanceof Object[]) {
             Object[] objects = (Object[]) array;
             for (int i = 0, length = objects.length; i < length; i++) {
@@ -2012,10 +2103,9 @@ public class ArrayUtils {
      * @param array The array.
      * @return the string of array
      */
-    public static String toString(Object array) {
-        if (array == null) {
-            return "null";
-        }
+    @NonNull
+    public static String toString(@Nullable Object array) {
+        if (array == null) return "null";
         if (array instanceof Object[]) {
             return Arrays.deepToString((Object[]) array);
         } else if (array instanceof boolean[]) {

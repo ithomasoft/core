@@ -25,15 +25,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.ref.WeakReference;
 
 public final class SnackbarUtils {
+
     public static final int LENGTH_INDEFINITE = -2;
     public static final int LENGTH_SHORT = -1;
     public static final int LENGTH_LONG = 0;
+    private static final int COLOR_ERROR = 0xFFFF0000;
+
     private static final int COLOR_DEFAULT = 0xFEFFFFFF;
     private static final int COLOR_SUCCESS = 0xFF2BB600;
     private static final int COLOR_WARNING = 0xFFFFC100;
-    private static final int COLOR_ERROR = 0xFFFF0000;
+    private static WeakReference<Snackbar> sWeakSnackbar;
     private static final int COLOR_MESSAGE = 0xFFFFFFFF;
-    private static WeakReference<Snackbar> sReference;
     private View view;
     private CharSequence message;
     private int messageColor;
@@ -42,13 +44,8 @@ public final class SnackbarUtils {
     private int duration;
     private CharSequence actionText;
     private int actionTextColor;
-    private View.OnClickListener actionListener;
     private int bottomMargin;
-
-    private SnackbarUtils(final View parent) {
-        setDefault();
-        this.view = parent;
-    }
+    private View.OnClickListener actionListener;
 
     /**
      * Set the view to find a parent from.
@@ -60,87 +57,9 @@ public final class SnackbarUtils {
         return new SnackbarUtils(view);
     }
 
-    /**
-     * Dismiss the snackbar.
-     */
-    public static void dismiss() {
-        if (sReference != null && sReference.get() != null) {
-            sReference.get().dismiss();
-            sReference = null;
-        }
-    }
-
-    /**
-     * Return the view of snackbar.
-     *
-     * @return the view of snackbar
-     */
-    public static View getView() {
-        Snackbar snackbar = sReference.get();
-        if (snackbar == null) {
-            return null;
-        }
-        return snackbar.getView();
-    }
-
-    /**
-     * Add view to the snackbar.
-     * <p>Call it after {@link #show()}</p>
-     *
-     * @param layoutId The id of layout.
-     * @param params   The params.
-     */
-    public static void addView(@LayoutRes final int layoutId,
-                               @NonNull final ViewGroup.LayoutParams params) {
-        final View view = getView();
-        if (view != null) {
-            view.setPadding(0, 0, 0, 0);
-            Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) view;
-            View child = LayoutInflater.from(view.getContext()).inflate(layoutId, null);
-            layout.addView(child, -1, params);
-        }
-    }
-
-    /**
-     * Add view to the snackbar.
-     * <p>Call it after {@link #show()}</p>
-     *
-     * @param child  The child view.
-     * @param params The params.
-     */
-    public static void addView(@NonNull final View child,
-                               @NonNull final ViewGroup.LayoutParams params) {
-        final View view = getView();
-        if (view != null) {
-            view.setPadding(0, 0, 0, 0);
-            Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) view;
-            layout.addView(child, params);
-        }
-    }
-
-    private static ViewGroup findSuitableParentCopyFromSnackbar(View view) {
-        ViewGroup fallback = null;
-
-        do {
-            if (view instanceof CoordinatorLayout) {
-                return (ViewGroup) view;
-            }
-
-            if (view instanceof FrameLayout) {
-                if (view.getId() == android.R.id.content) {
-                    return (ViewGroup) view;
-                }
-
-                fallback = (ViewGroup) view;
-            }
-
-            if (view != null) {
-                ViewParent parent = view.getParent();
-                view = parent instanceof View ? (View) parent : null;
-            }
-        } while (view != null);
-
-        return fallback;
+    private SnackbarUtils(final View parent) {
+        setDefault();
+        this.view = parent;
     }
 
     private void setDefault() {
@@ -152,6 +71,16 @@ public final class SnackbarUtils {
         actionText = "";
         actionTextColor = COLOR_DEFAULT;
         bottomMargin = 0;
+    }
+
+    /**
+     * Dismiss the snackbar.
+     */
+    public static void dismiss() {
+        if (sWeakSnackbar != null && sWeakSnackbar.get() != null) {
+            sWeakSnackbar.get().dismiss();
+            sWeakSnackbar = null;
+        }
     }
 
     /**
@@ -262,67 +191,14 @@ public final class SnackbarUtils {
     }
 
     /**
-     * Show the snackbar.
+     * Return the view of snackbar.
      *
-     * @param isShowTop True to show the snack bar on the top, false otherwise.
+     * @return the view of snackbar
      */
-    public Snackbar show(boolean isShowTop) {
-        View view = this.view;
-        if (view == null) {
-            return null;
-        }
-        if (isShowTop) {
-            ViewGroup suitableParent = findSuitableParentCopyFromSnackbar(view);
-            View topSnackBarContainer = suitableParent.findViewWithTag("topSnackBarCoordinatorLayout");
-            if (topSnackBarContainer == null) {
-                CoordinatorLayout topSnackBarCoordinatorLayout = new CoordinatorLayout(view.getContext());
-                topSnackBarCoordinatorLayout.setTag("topSnackBarCoordinatorLayout");
-                topSnackBarCoordinatorLayout.setRotation(180);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    // bring to front
-                    topSnackBarCoordinatorLayout.setElevation(100);
-                }
-                suitableParent.addView(topSnackBarCoordinatorLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                topSnackBarContainer = topSnackBarCoordinatorLayout;
-            }
-            view = topSnackBarContainer;
-        }
-        if (messageColor != COLOR_DEFAULT) {
-            SpannableString spannableString = new SpannableString(message);
-            ForegroundColorSpan colorSpan = new ForegroundColorSpan(messageColor);
-            spannableString.setSpan(
-                    colorSpan, 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            sReference = new WeakReference<>(Snackbar.make(view, spannableString, duration));
-        } else {
-            sReference = new WeakReference<>(Snackbar.make(view, message, duration));
-        }
-        final Snackbar snackbar = sReference.get();
-        final Snackbar.SnackbarLayout snackbarView = (Snackbar.SnackbarLayout) snackbar.getView();
-        if (isShowTop) {
-            for (int i = 0; i < snackbarView.getChildCount(); i++) {
-                View child = snackbarView.getChildAt(i);
-                child.setRotation(180);
-            }
-        }
-        if (bgResource != -1) {
-            snackbarView.setBackgroundResource(bgResource);
-        } else if (bgColor != COLOR_DEFAULT) {
-            snackbarView.setBackgroundColor(bgColor);
-        }
-        if (bottomMargin != 0) {
-            ViewGroup.MarginLayoutParams params =
-                    (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
-            params.bottomMargin = bottomMargin;
-        }
-        if (actionText.length() > 0 && actionListener != null) {
-            if (actionTextColor != COLOR_DEFAULT) {
-                snackbar.setActionTextColor(actionTextColor);
-            }
-            snackbar.setAction(actionText, actionListener);
-        }
-        snackbar.show();
-        return snackbar;
+    public static View getView() {
+        Snackbar snackbar = sWeakSnackbar.get();
+        if (snackbar == null) return null;
+        return snackbar.getView();
     }
 
     /**
@@ -380,6 +256,128 @@ public final class SnackbarUtils {
         messageColor = COLOR_MESSAGE;
         actionTextColor = COLOR_MESSAGE;
         show(isShowTop);
+    }
+
+    /**
+     * Add view to the snackbar.
+     * <p>Call it after {@link #show()}</p>
+     *
+     * @param layoutId The id of layout.
+     * @param params   The params.
+     */
+    public static void addView(@LayoutRes final int layoutId,
+                               @NonNull final ViewGroup.LayoutParams params) {
+        final View view = getView();
+        if (view != null) {
+            view.setPadding(0, 0, 0, 0);
+            Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) view;
+            View child = LayoutInflater.from(view.getContext()).inflate(layoutId, null);
+            layout.addView(child, -1, params);
+        }
+    }
+
+    /**
+     * Add view to the snackbar.
+     * <p>Call it after {@link #show()}</p>
+     *
+     * @param child  The child view.
+     * @param params The params.
+     */
+    public static void addView(@NonNull final View child,
+                               @NonNull final ViewGroup.LayoutParams params) {
+        final View view = getView();
+        if (view != null) {
+            view.setPadding(0, 0, 0, 0);
+            Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) view;
+            layout.addView(child, params);
+        }
+    }
+
+    private static ViewGroup findSuitableParentCopyFromSnackbar(View view) {
+        ViewGroup fallback = null;
+
+        do {
+            if (view instanceof CoordinatorLayout) {
+                return (ViewGroup) view;
+            }
+
+            if (view instanceof FrameLayout) {
+                if (view.getId() == android.R.id.content) {
+                    return (ViewGroup) view;
+                }
+
+                fallback = (ViewGroup) view;
+            }
+
+            if (view != null) {
+                ViewParent parent = view.getParent();
+                view = parent instanceof View ? (View) parent : null;
+            }
+        } while (view != null);
+
+        return fallback;
+    }
+
+    /**
+     * Show the snackbar.
+     *
+     * @param isShowTop True to show the snack bar on the top, false otherwise.
+     */
+    public Snackbar show(boolean isShowTop) {
+        View view = this.view;
+        if (view == null) return null;
+        if (isShowTop) {
+            ViewGroup suitableParent = findSuitableParentCopyFromSnackbar(view);
+            View topSnackBarContainer = suitableParent.findViewWithTag("topSnackBarCoordinatorLayout");
+            if (topSnackBarContainer == null) {
+                CoordinatorLayout topSnackBarCoordinatorLayout = new CoordinatorLayout(view.getContext());
+                topSnackBarCoordinatorLayout.setTag("topSnackBarCoordinatorLayout");
+                topSnackBarCoordinatorLayout.setRotation(180);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // bring to front
+                    topSnackBarCoordinatorLayout.setElevation(100);
+                }
+                suitableParent.addView(topSnackBarCoordinatorLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                topSnackBarContainer = topSnackBarCoordinatorLayout;
+            }
+            view = topSnackBarContainer;
+        }
+        if (messageColor != COLOR_DEFAULT) {
+            SpannableString spannableString = new SpannableString(message);
+            ForegroundColorSpan colorSpan = new ForegroundColorSpan(messageColor);
+            spannableString.setSpan(
+                    colorSpan, 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            sWeakSnackbar = new WeakReference<>(Snackbar.make(view, spannableString, duration));
+        } else {
+            sWeakSnackbar = new WeakReference<>(Snackbar.make(view, message, duration));
+        }
+        final Snackbar snackbar = sWeakSnackbar.get();
+        final Snackbar.SnackbarLayout snackbarView = (Snackbar.SnackbarLayout) snackbar.getView();
+        if (isShowTop) {
+            for (int i = 0; i < snackbarView.getChildCount(); i++) {
+                View child = snackbarView.getChildAt(i);
+                child.setRotation(180);
+            }
+        }
+        if (bgResource != -1) {
+            snackbarView.setBackgroundResource(bgResource);
+        } else if (bgColor != COLOR_DEFAULT) {
+            snackbarView.setBackgroundColor(bgColor);
+        }
+        if (bottomMargin != 0) {
+            ViewGroup.MarginLayoutParams params =
+                    (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomMargin;
+        }
+        if (actionText.length() > 0 && actionListener != null) {
+            if (actionTextColor != COLOR_DEFAULT) {
+                snackbar.setActionTextColor(actionTextColor);
+            }
+            snackbar.setAction(actionText, actionListener);
+        }
+        snackbar.show();
+        return snackbar;
     }
 
     @IntDef({LENGTH_INDEFINITE, LENGTH_SHORT, LENGTH_LONG})

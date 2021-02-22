@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
 import androidx.core.content.FileProvider;
@@ -380,9 +381,9 @@ public final class IntentUtils {
     public static Intent getShutdownIntent() {
         Intent intent;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            intent = new Intent(Intent.ACTION_SHUTDOWN);
-        } else {
             intent = new Intent("com.android.internal.intent.action.REQUEST_SHUTDOWN");
+        } else {
+            intent = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
         }
         intent.putExtra("android.intent.extra.KEY_CONFIRM", false);
         return intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -394,8 +395,8 @@ public final class IntentUtils {
      * @param phoneNumber The phone number.
      * @return the intent of dial
      */
-    public static Intent getDialIntent(final String phoneNumber) {
-        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phoneNumber));
+    public static Intent getDialIntent(@NonNull final String phoneNumber) {
+        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phoneNumber)));
         return getIntent(intent, true);
     }
 
@@ -407,8 +408,8 @@ public final class IntentUtils {
      * @return the intent of call
      */
     @RequiresPermission(CALL_PHONE)
-    public static Intent getCallIntent(final String phoneNumber) {
-        Intent intent = new Intent("android.intent.action.CALL", Uri.parse("tel:" + phoneNumber));
+    public static Intent getCallIntent(@NonNull final String phoneNumber) {
+        Intent intent = new Intent("android.intent.action.CALL", Uri.parse("tel:" + Uri.encode(phoneNumber)));
         return getIntent(intent, true);
     }
 
@@ -419,8 +420,8 @@ public final class IntentUtils {
      * @param content     The content of SMS.
      * @return the intent of send SMS
      */
-    public static Intent getSendSmsIntent(final String phoneNumber, final String content) {
-        Uri uri = Uri.parse("smsto:" + phoneNumber);
+    public static Intent getSendSmsIntent(@NonNull final String phoneNumber, final String content) {
+        Uri uri = Uri.parse("smsto:" + Uri.encode(phoneNumber));
         Intent intent = new Intent(Intent.ACTION_SENDTO, uri);
         intent.putExtra("sms_body", content);
         return getIntent(intent, true);
