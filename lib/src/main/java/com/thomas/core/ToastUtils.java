@@ -217,7 +217,7 @@ public final class ToastUtils {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                     return new SystemToast(toastUtils);
                 }
-                if (!UtilsBridge.isGrantedDrawOverlays()) {
+                if (!isGrantedDrawOverlays()) {
                     return new SystemToast(toastUtils);
                 }
             }
@@ -226,7 +226,7 @@ public final class ToastUtils {
         // not use system or notification disable
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
             return new WindowManagerToast(toastUtils, WindowManager.LayoutParams.TYPE_TOAST);
-        } else if (UtilsBridge.isGrantedDrawOverlays()) {
+        } else if (isGrantedDrawOverlays()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 return new WindowManagerToast(toastUtils, WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             } else {
@@ -517,6 +517,11 @@ public final class ToastUtils {
         String DARK = "dark";
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    static boolean isGrantedDrawOverlays() {
+        return Settings.canDrawOverlays(Utils.getApp());
+    }
+    
     static final class SystemToast extends AbsToast {
 
         SystemToast(ToastUtils toastUtils) {
