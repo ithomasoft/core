@@ -1866,6 +1866,7 @@ public final class ImageUtils {
      * @param recycle True to recycle the source of bitmap, false otherwise.
      * @return the file if save success, otherwise return null.
      */
+    @RequiresPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     @Nullable
     public static File save2Album(final Bitmap src,
                                   final String dirName,
@@ -1876,10 +1877,6 @@ public final class ImageUtils {
         String suffix = CompressFormat.JPEG.equals(format) ? "JPG" : format.name();
         String fileName = System.currentTimeMillis() + "_" + quality + "." + suffix;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            if (!UtilsBridge.isGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Log.e("ImageUtils", "save to album need storage permission");
-                return null;
-            }
             File picDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
             File destFile = new File(picDir, safeDirName + "/" + fileName);
             if (!save(src, destFile, format, quality, recycle)) {
