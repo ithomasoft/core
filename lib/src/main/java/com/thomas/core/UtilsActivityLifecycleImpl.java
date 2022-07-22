@@ -1,6 +1,7 @@
 package com.thomas.core;
 
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Build;
@@ -14,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,7 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         }
         try {
             //noinspection JavaReflectionMemberAccess
-            Field sDurationScaleField = ValueAnimator.class.getDeclaredField("sDurationScale");
+            @SuppressLint("SoonBlockedPrivateApi") Field sDurationScaleField = ValueAnimator.class.getDeclaredField("sDurationScale");
             sDurationScaleField.setAccessible(true);
             //noinspection ConstantConditions
             float sDurationScale = (Float) sDurationScaleField.get(null);
@@ -192,13 +192,7 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
                 return null;
             }
             return (Application) app;
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -373,6 +367,7 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
         Activity topActivity = null;
         try {
             Object activityThread = getActivityThread();
+            if (activityThread == null) return list;
             Field mActivitiesField = activityThread.getClass().getDeclaredField("mActivities");
             mActivitiesField.setAccessible(true);
             Object mActivities = mActivitiesField.get(activityThread);
@@ -391,10 +386,10 @@ final class UtilsActivityLifecycleImpl implements Application.ActivityLifecycleC
                     if (!pausedField.getBoolean(activityRecord)) {
                         topActivity = activity;
                     } else {
-                        list.add(activity);
+                        list.addFirst(activity);
                     }
                 } else {
-                    list.add(activity);
+                    list.addFirst(activity);
                 }
             }
         } catch (Exception e) {

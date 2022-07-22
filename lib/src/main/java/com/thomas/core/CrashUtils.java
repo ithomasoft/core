@@ -89,14 +89,14 @@ public final class CrashUtils {
             public void uncaughtException(@NonNull final Thread t, @NonNull final Throwable e) {
                 final String time = new SimpleDateFormat("yyyy_MM_dd-HH_mm_ss").format(new Date());
                 CrashInfo info = new CrashInfo(time, e);
-                if (onCrashListener != null) {
-                    onCrashListener.onCrash(info);
-                }
                 final String crashFile = dirPath + time + ".txt";
                 UtilsBridge.writeFileFromString(crashFile, info.toString(), true);
 
                 if (DEFAULT_UNCAUGHT_EXCEPTION_HANDLER != null) {
                     DEFAULT_UNCAUGHT_EXCEPTION_HANDLER.uncaughtException(t, e);
+                }
+                if (onCrashListener != null) {
+                    onCrashListener.onCrash(info);
                 }
             }
         };

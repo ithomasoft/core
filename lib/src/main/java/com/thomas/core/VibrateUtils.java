@@ -1,11 +1,11 @@
 package com.thomas.core;
 
+import static android.Manifest.permission.VIBRATE;
+
 import android.content.Context;
 import android.os.Vibrator;
 
 import androidx.annotation.RequiresPermission;
-
-import static android.Manifest.permission.VIBRATE;
 
 public final class VibrateUtils {
     private static Vibrator vibrator;

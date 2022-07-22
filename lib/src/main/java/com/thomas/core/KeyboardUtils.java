@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.Field;
 
@@ -43,7 +44,7 @@ public final class KeyboardUtils {
     /**
      * Show the soft input.
      */
-    public static void showSoftInput(@NonNull Activity activity) {
+    public static void showSoftInput(@Nullable Activity activity) {
         if (!isSoftInputVisible(activity)) {
             toggleSoftInput();
         }
@@ -54,7 +55,7 @@ public final class KeyboardUtils {
      *
      * @param view The view.
      */
-    public static void showSoftInput(@NonNull final View view) {
+    public static void showSoftInput(@Nullable  final View view) {
         showSoftInput(view, 0);
     }
 
@@ -65,7 +66,7 @@ public final class KeyboardUtils {
      *
      * @param activity The activity.
      */
-    public static void hideSoftInput(@NonNull final Activity activity) {
+    public static void hideSoftInput(@Nullable  final Activity activity) {
         hideSoftInput(activity.getWindow());
     }
 
@@ -74,7 +75,7 @@ public final class KeyboardUtils {
      *
      * @param window The window.
      */
-    public static void hideSoftInput(@NonNull final Window window) {
+    public static void hideSoftInput(@Nullable  final Window window) {
         View view = window.getCurrentFocus();
         if (view == null) {
             View decorView = window.getDecorView();
@@ -100,7 +101,7 @@ public final class KeyboardUtils {
      * @param flags Provides additional operating flags.  Currently may be
      *              0 or have the {@link InputMethodManager#SHOW_IMPLICIT} bit set.
      */
-    public static void showSoftInput(@NonNull final View view, final int flags) {
+    public static void showSoftInput(@Nullable  final View view, final int flags) {
         InputMethodManager imm =
                 (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm == null) return;
@@ -124,7 +125,7 @@ public final class KeyboardUtils {
      *
      * @param view The view.
      */
-    public static void hideSoftInput(@NonNull final View view) {
+    public static void hideSoftInput(@Nullable  final View view) {
         InputMethodManager imm =
                 (InputMethodManager) Utils.getApp().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm == null) return;

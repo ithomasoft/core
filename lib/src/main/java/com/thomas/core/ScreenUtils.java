@@ -1,5 +1,7 @@
 package com.thomas.core;
 
+import static android.Manifest.permission.WRITE_SETTINGS;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -19,8 +21,6 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
-
-import static android.Manifest.permission.WRITE_SETTINGS;
 
 public final class ScreenUtils {
     private ScreenUtils() {

@@ -1,5 +1,8 @@
 package com.thomas.core;
 
+import static android.Manifest.permission.CALL_PHONE;
+import static android.Manifest.permission.READ_PHONE_STATE;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
@@ -11,9 +14,6 @@ import androidx.annotation.RequiresPermission;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import static android.Manifest.permission.CALL_PHONE;
-import static android.Manifest.permission.READ_PHONE_STATE;
 
 public final class PhoneUtils {
     private PhoneUtils() {

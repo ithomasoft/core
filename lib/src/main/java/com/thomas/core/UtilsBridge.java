@@ -1,5 +1,7 @@
 package com.thomas.core;
 
+import static android.Manifest.permission.CALL_PHONE;
+
 import android.app.Activity;
 import android.app.Application;
 import android.app.Notification;
@@ -16,7 +18,6 @@ import android.view.View;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
@@ -34,8 +35,6 @@ import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.Manifest.permission.CALL_PHONE;
 
 class UtilsBridge {
     static void init(Application app) {

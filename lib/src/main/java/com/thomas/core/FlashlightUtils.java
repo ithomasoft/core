@@ -1,14 +1,14 @@
 package com.thomas.core;
 
+import static android.hardware.Camera.Parameters.FLASH_MODE_OFF;
+import static android.hardware.Camera.Parameters.FLASH_MODE_TORCH;
+
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.util.Log;
 
 import java.io.IOException;
-
-import static android.hardware.Camera.Parameters.FLASH_MODE_OFF;
-import static android.hardware.Camera.Parameters.FLASH_MODE_TORCH;
 
 public final class FlashlightUtils {
     private static Camera mCamera;

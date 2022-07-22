@@ -501,6 +501,65 @@ public final class AppUtils {
     }
 
     /**
+     * Return the application's minimum sdk version code.
+     *
+     * @return the application's minimum sdk version code
+     */
+    public static int getAppMinSdkVersion() {
+        return getAppMinSdkVersion(Utils.getApp().getPackageName());
+    }
+
+    /**
+     * Return the application's minimum sdk version code.
+     *
+     * @param packageName The name of the package.
+     * @return the application's minimum sdk version code
+     */
+    public static int getAppMinSdkVersion(final String packageName) {
+        if (UtilsBridge.isSpace(packageName)) return -1;
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) return -1;
+        try {
+            PackageManager pm = Utils.getApp().getPackageManager();
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            if (null == pi) return -1;
+            ApplicationInfo ai = pi.applicationInfo;
+            return null == ai ? -1 : ai.minSdkVersion;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    /**
+     * Return the application's target sdk version code.
+     *
+     * @return the application's target sdk version code
+     */
+    public static int getAppTargetSdkVersion() {
+        return getAppTargetSdkVersion(Utils.getApp().getPackageName());
+    }
+
+    /**
+     * Return the application's target sdk version code.
+     *
+     * @param packageName The name of the package.
+     * @return the application's target sdk version code
+     */
+    public static int getAppTargetSdkVersion(final String packageName) {
+        if (UtilsBridge.isSpace(packageName)) return -1;
+        try {
+            PackageManager pm = Utils.getApp().getPackageManager();
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            if (null == pi) return -1;
+            ApplicationInfo ai = pi.applicationInfo;
+            return null == ai ? -1 : ai.targetSdkVersion;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    /**
      * Return the application's signature.
      *
      * @return the application's signature
@@ -763,6 +822,21 @@ public final class AppUtils {
         appInfo.sourceDir = apkFilePath;
         appInfo.publicSourceDir = apkFilePath;
         return getBean(pm, pi);
+    }
+
+    /**
+     * Return whether the application was first installed.
+     *
+     * @return {@code true}: yes<br>{@code false}: no
+     */
+    public static boolean isFirstTimeInstalled() {
+        try {
+            PackageInfo pi = Utils.getApp().getPackageManager().getPackageInfo(Utils.getApp().getPackageName(), 0);
+            return pi.firstInstallTime == pi.lastUpdateTime;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return true;
+        }
     }
 
     private static AppInfo getBean(final PackageManager pm, final PackageInfo pi) {
